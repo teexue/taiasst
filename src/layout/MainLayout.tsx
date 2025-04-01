@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout, Menu, Avatar, Tag, Badge } from "antd";
+import { Layout, Menu, Avatar, Tag, Badge, Card } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import { RiHome4Line } from "@remixicon/react";
@@ -87,11 +87,16 @@ function MainLayout() {
           </div>
         </Sider>
         <Layout className="h-full">
-          <Content 
-            className="overflow-auto h-full bg-color-bg-secondary dark:bg-color-bg-primary"
-          >
-            <Outlet />
-          </Content>
+            <Content 
+              className="p-3 overflow-auto h-full"
+            >
+              <Card 
+                className="w-full h-full rounded-xl shadow-md overflow-auto bg-color-bg-card dark:bg-color-bg-tertiary"
+                styles={{ body: { padding: '16px' } }}
+              >
+                <Outlet />
+              </Card>
+            </Content>
         </Layout>
       </Layout>
     </Layout>
