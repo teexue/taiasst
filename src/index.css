@@ -1,0 +1,50 @@
+@layer theme, base, antd, components, utilities;
+@import "tailwindcss";
+
+/* App拖拽区域样式 */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+/* 非拖拽区域 */
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* 防止内容溢出 */
+html,
+body {
+  overflow-x: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+/* 重写右侧滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #a99beb;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f8f9fc;
+  border-radius: 6px;
+}
+
+/* 修复菜单图标与文本对齐问题 */
+.ant-menu-item {
+  display: flex !important;
+  align-items: center !important;
+}
+.ant-menu-item .ant-menu-item-icon {
+  display: flex !important;
+  align-items: center !important;
+  margin-right: 10px !important;
+}
