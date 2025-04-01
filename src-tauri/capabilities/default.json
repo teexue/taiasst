@@ -20,6 +20,9 @@
     "shell:allow-open",
     "autostart:allow-enable",
     "autostart:allow-disable",
-    "autostart:allow-is-enabled"
+    "autostart:allow-is-enabled",
+    "fs:allow-read-dir",
+    "fs:allow-read-file",
+    "fs:allow-write-file"
   ]
 }
