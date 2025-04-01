@@ -15,11 +15,9 @@ import {
   Form,
   Input,
   Select,
-  Upload,
-  Popover,
   Dropdown,
-  Menu,
   Divider,
+  Spin,
 } from "antd";
 import React, { useState, useEffect } from "react";
 import * as RemixIcons from "@remixicon/react";
@@ -28,7 +26,6 @@ import { localToolManager } from "@/utils/local-tool-manager";
 import { LocalTool } from "@/types/local-tool";
 import {
   PlusOutlined,
-  UploadOutlined,
   EditOutlined,
   MoreOutlined,
   DeleteOutlined,
@@ -286,7 +283,7 @@ function Tool() {
     }
   };
 
-  const handleCardClick = (path: string, toolType?: string) => {
+  const handleCardClick = (path: string) => {
     navigate(`/tool/${path}`);
   };
 
@@ -424,201 +421,207 @@ function Tool() {
       {renderAddToolButton()}
 
       {/* 标签页工具列表 */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        type="card"
-        items={toolList.map((category) => {
-          return {
-            key: category.path,
-            label: renderTabTitle(category),
-            children: category.tools && (
-              <Row gutter={[16, 16]}>
-                {category.tools.map((tool: Tool) => {
-                  const ToolIcon = tool.icon
-                    ? RemixIcons[tool.icon as keyof typeof RemixIcons]
-                    : null;
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          type="card"
+          items={toolList.map((category) => {
+            return {
+              key: category.path,
+              label: renderTabTitle(category),
+              children: category.tools && (
+                <Row gutter={[16, 16]}>
+                  {category.tools.map((tool: Tool) => {
+                    const ToolIcon = tool.icon
+                      ? RemixIcons[tool.icon as keyof typeof RemixIcons]
+                      : null;
 
-                  const isLocalTool = category.path === "local-tools";
-                  const isActuallyLocalTool =
-                    isLocalTool || (tool as any).isLocalTool;
-                  const isEnabled = getToolEnabledStatus(tool);
+                    const isLocalTool = category.path === "local-tools";
+                    const isActuallyLocalTool =
+                      isLocalTool || (tool as any).isLocalTool;
+                    const isEnabled = getToolEnabledStatus(tool);
 
-                  // 本地工具的操作菜单
-                  const toolMenu = isActuallyLocalTool && (
-                    <Dropdown
-                      menu={{
-                        items: [
-                          {
-                            key: "edit",
-                            icon: <EditOutlined />,
-                            label: "编辑",
-                            onClick: (e) => {
-                              e.domEvent.stopPropagation();
-                              showEditToolModal(tool as unknown as LocalTool);
+                    // 本地工具的操作菜单
+                    const toolMenu = isActuallyLocalTool && (
+                      <Dropdown
+                        menu={{
+                          items: [
+                            {
+                              key: "edit",
+                              icon: <EditOutlined />,
+                              label: "编辑",
+                              onClick: (e) => {
+                                e.domEvent.stopPropagation();
+                                showEditToolModal(tool as unknown as LocalTool);
+                              },
+                              disabled: !isEnabled,
                             },
-                            disabled: !isEnabled,
-                          },
-                          {
-                            key: "delete",
-                            icon: <DeleteOutlined />,
-                            label: "删除",
-                            danger: true,
-                            onClick: (e) => {
-                              e.domEvent.stopPropagation();
-                              Modal.confirm({
-                                title: "确认删除",
-                                content: `确定要删除工具"${tool.name}"吗？`,
-                                okText: "确认",
-                                cancelText: "取消",
-                                okButtonProps: { danger: true },
-                                onOk: () =>
-                                  handleDeleteTool(
-                                    (tool as unknown as LocalTool).id
-                                  ),
-                              });
+                            {
+                              key: "delete",
+                              icon: <DeleteOutlined />,
+                              label: "删除",
+                              danger: true,
+                              onClick: (e) => {
+                                e.domEvent.stopPropagation();
+                                Modal.confirm({
+                                  title: "确认删除",
+                                  content: `确定要删除工具"${tool.name}"吗？`,
+                                  okText: "确认",
+                                  cancelText: "取消",
+                                  okButtonProps: { danger: true },
+                                  onOk: () =>
+                                    handleDeleteTool(
+                                      (tool as unknown as LocalTool).id
+                                    ),
+                                });
+                              },
+                              disabled: !isEnabled,
                             },
-                            disabled: !isEnabled,
-                          },
-                        ],
-                      }}
-                      trigger={["click"]}
-                      placement="bottomRight"
-                      disabled={!isEnabled}
-                    >
-                      <Button
-                        type="text"
-                        icon={<MoreOutlined />}
-                        size="small"
-                        onClick={(e) => e.stopPropagation()}
+                          ],
+                        }}
+                        trigger={["click"]}
+                        placement="bottomRight"
                         disabled={!isEnabled}
-                      />
-                    </Dropdown>
-                  );
-
-                  return (
-                    <Col
-                      key={
-                        isActuallyLocalTool
-                          ? (tool as unknown as LocalTool).id
-                          : tool.name
-                      }
-                      xs={24}
-                      sm={24}
-                      md={12}
-                      lg={8}
-                      xl={6}
-                    >
-                      <div className="tool-card-wrapper relative h-full">
-                        {/* 添加一个淡灰色遮罩，如果工具被禁用 */}
-                        {isActuallyLocalTool && !isEnabled && (
-                          <div className="absolute inset-0 bg-gray-100/80 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center pointer-events-none">
-                            <Text type="secondary" className="text-sm">
-                              "{tool.name}"已禁用
-                            </Text>
-                          </div>
-                        )}
-
-                        <Card
-                          hoverable={isEnabled}
-                          onClick={
-                            isEnabled
-                              ? () => handleCardClick(tool.path, tool.type)
-                              : undefined
-                          }
+                      >
+                        <Button
+                          type="text"
+                          icon={<MoreOutlined />}
                           size="small"
-                          className="h-full"
-                          extra={
-                            <>
-                              {isActuallyLocalTool && (
-                                <Space>
-                                  <Switch
-                                    size="small"
-                                    checked={isEnabled}
-                                    onChange={(checked, event) => {
-                                      // 阻止卡片点击事件
-                                      event.stopPropagation();
-                                      handleToggleTool(
-                                        (tool as unknown as LocalTool).id,
-                                        checked
-                                      );
-                                    }}
-                                    className="z-20 relative"
-                                  />
-                                  {toolMenu}
-                                </Space>
-                              )}
-                            </>
-                          }
-                        >
-                          <Space
-                            align="start"
-                            direction="vertical"
-                            className="w-full"
+                          onClick={(e) => e.stopPropagation()}
+                          disabled={!isEnabled}
+                        />
+                      </Dropdown>
+                    );
+
+                    return (
+                      <Col
+                        key={
+                          isActuallyLocalTool
+                            ? (tool as unknown as LocalTool).id
+                            : tool.name
+                        }
+                        xs={24}
+                        sm={24}
+                        md={12}
+                        lg={8}
+                        xl={6}
+                      >
+                        <div className="tool-card-wrapper relative h-full">
+                          {/* 添加一个淡灰色遮罩，如果工具被禁用 */}
+                          {isActuallyLocalTool && !isEnabled && (
+                            <div className="absolute inset-0 bg-gray-100/80 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center pointer-events-none">
+                              <Text type="secondary" className="text-sm">
+                                "{tool.name}"已禁用
+                              </Text>
+                            </div>
+                          )}
+
+                          <Card
+                            hoverable={isEnabled}
+                            onClick={
+                              isEnabled
+                                ? () => handleCardClick(tool.path)
+                                : undefined
+                            }
+                            size="small"
+                            className="h-full"
+                            extra={
+                              <>
+                                {isActuallyLocalTool && (
+                                  <Space>
+                                    <Switch
+                                      size="small"
+                                      checked={isEnabled}
+                                      onChange={(checked, event) => {
+                                        // 阻止卡片点击事件
+                                        event.stopPropagation();
+                                        handleToggleTool(
+                                          (tool as unknown as LocalTool).id,
+                                          checked
+                                        );
+                                      }}
+                                      className="z-20 relative"
+                                    />
+                                    {toolMenu}
+                                  </Space>
+                                )}
+                              </>
+                            }
                           >
-                            <Space align="start" className="w-full">
-                              <Avatar
-                                size={40}
-                                icon={ToolIcon && <ToolIcon />}
-                              />
-                              <Space direction="vertical" className="w-full">
-                                <Title level={5} ellipsis={{ rows: 1 }}>
-                                  {tool.name}
-                                  {isActuallyLocalTool && (
-                                    <Tag color="blue" className="ml-2">
-                                      本地
-                                    </Tag>
-                                  )}
-                                </Title>
-                                <Paragraph
-                                  type="secondary"
-                                  ellipsis={{ rows: 2 }}
-                                >
-                                  {tool.description || "暂无描述"}
-                                </Paragraph>
+                            <Space
+                              align="start"
+                              direction="vertical"
+                              className="w-full"
+                            >
+                              <Space align="start" className="w-full">
+                                <Avatar
+                                  size={40}
+                                  icon={ToolIcon && <ToolIcon />}
+                                />
+                                <Space direction="vertical" className="w-full">
+                                  <Title level={5} ellipsis={{ rows: 1 }}>
+                                    {tool.name}
+                                    {isActuallyLocalTool && (
+                                      <Tag color="blue" className="ml-2">
+                                        本地
+                                      </Tag>
+                                    )}
+                                  </Title>
+                                  <Paragraph
+                                    type="secondary"
+                                    ellipsis={{ rows: 2 }}
+                                  >
+                                    {tool.description || "暂无描述"}
+                                  </Paragraph>
+                                </Space>
+                              </Space>
+
+                              <div className="min-h-[32px]">
+                                {tool.tags && tool.tags.length > 0 ? (
+                                  <Space wrap>
+                                    {tool.tags.slice(0, 3).map((tag) => (
+                                      <Tag key={tag}>{tag}</Tag>
+                                    ))}
+                                    {tool.tags.length > 3 && (
+                                      <Text type="secondary">
+                                        +{tool.tags.length - 3}
+                                      </Text>
+                                    )}
+                                  </Space>
+                                ) : (
+                                  <div className="h-6"></div>
+                                )}
+                              </div>
+
+                              <Space split={<Divider type="vertical" />}>
+                                {tool.version && (
+                                  <Text type="secondary">
+                                    版本: {tool.version}
+                                  </Text>
+                                )}
+                                {tool.author && (
+                                  <Text type="secondary">
+                                    作者: {tool.author}
+                                  </Text>
+                                )}
                               </Space>
                             </Space>
-
-                            <div className="min-h-[32px]">
-                              {tool.tags && tool.tags.length > 0 ? (
-                                <Space wrap>
-                                  {tool.tags.slice(0, 3).map((tag) => (
-                                    <Tag key={tag}>{tag}</Tag>
-                                  ))}
-                                  {tool.tags.length > 3 && (
-                                    <Text type="secondary">
-                                      +{tool.tags.length - 3}
-                                    </Text>
-                                  )}
-                                </Space>
-                              ) : (
-                                <div className="h-6"></div>
-                              )}
-                            </div>
-
-                            <Space split={<Divider type="vertical" />}>
-                              {tool.version && (
-                                <Text type="secondary">
-                                  版本: {tool.version}
-                                </Text>
-                              )}
-                              {tool.author && (
-                                <Text type="secondary">
-                                  作者: {tool.author}
-                                </Text>
-                              )}
-                            </Space>
-                          </Space>
-                        </Card>
-                      </div>
-                    </Col>
-                  );
-                })}
-              </Row>
-            ),
-          };
-        })}
-      />
+                          </Card>
+                        </div>
+                      </Col>
+                    );
+                  })}
+                </Row>
+              ),
+            };
+          })}
+        />
+      )}
 
       {/* 工具表单模态框（添加/编辑） */}
       <Modal

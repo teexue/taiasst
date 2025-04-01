@@ -1,8 +1,8 @@
 import React from "react";
-import { Layout, Menu, Avatar, Tag, Badge, Card, Button } from "antd";
+import { Layout, Menu, Avatar, Tag, Badge, Card } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import ThemeSwitcher from "../components/ThemeSwitcher";
-import { RiArrowGoBackLine, RiHome4Line, RiToolsLine } from "@remixicon/react";
+import { RiHome4Line, RiSettingsLine, RiToolsLine } from "@remixicon/react";
 import WindowControls from "@/components/WindowControls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-shell";
@@ -26,6 +26,11 @@ function MainLayout() {
       key: "/tool",
       icon: <RiToolsLine size={16} />,
       label: "工具",
+    },
+    {
+      key: "/settings",
+      icon: <RiSettingsLine size={16} />,
+      label: "设置",
     },
   ];
 
