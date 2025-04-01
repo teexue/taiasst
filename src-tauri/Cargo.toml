@@ -25,6 +25,11 @@ serde_json = "1"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-shell = "2"
+tauri-plugin-fs = "2"
+png = "0.17.16"
+chrono = "0.4.40"
+sysinfo = "0.34.1"
+nvml-wrapper = "0.10.0"
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"] # or "postgres", or "mysql"

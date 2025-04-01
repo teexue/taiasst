@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
 
 interface WindowControlsProps {
   onMinimize: () => void;
@@ -12,9 +14,12 @@ const WindowControls: React.FC<WindowControlsProps> = ({
   onClose,
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
-  
+
+  listen("tauri://resize", async () => {
+    setIsMaximized(await getCurrentWindow().isMaximized());
+  });
+
   const handleMaximize = () => {
-    setIsMaximized(!isMaximized);
     onMaximize();
   };
 
@@ -31,7 +36,7 @@ const WindowControls: React.FC<WindowControlsProps> = ({
           xmlns="http://www.w3.org/2000/svg"
         >
           <path d="M0,0.5 L11,0.5" stroke="currentColor" />
-        </svg> 
+        </svg>
       </div>
       <div
         className="w-[50px] h-[40px] flex items-center justify-center cursor-pointer transition-colors duration-200 hover:bg-gray-800 dark:hover:bg-gray-700/30"
@@ -77,14 +82,11 @@ const WindowControls: React.FC<WindowControlsProps> = ({
           viewBox="0 0 10 10"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path
-            d="M0,0 L10,10 M10,0 L0,10"
-            stroke="currentColor"
-          />
-        </svg>       
+          <path d="M0,0 L10,10 M10,0 L0,10" stroke="currentColor" />
+        </svg>
       </div>
     </div>
   );
 };
 
-export default WindowControls; 
+export default WindowControls;
