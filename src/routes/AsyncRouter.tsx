@@ -1,7 +1,10 @@
 import { RouterProvider } from "react-router";
 import { createBrowserRouter } from "react-router";
-import MainLayout from "../layout/MainLayout";
-import Home from "../pages/home";
+import MainLayout from "@/layout/MainLayout";
+import Home from "@/pages/home";
+import Tool from "@/pages/tool";
+import ToolDetail from "@/pages/tool/ToolDetail";
+import NotFound from "@/pages/404";
 
 function AsyncRouter() {
   const router = createBrowserRouter([
@@ -12,6 +15,18 @@ function AsyncRouter() {
         {
           path: "/",
           element: <Home />,
+        },
+        {
+          path: "/tool",
+          element: <Tool />,
+        },
+        {
+          path: "/tool/:path",
+          element: <ToolDetail />,
+        },
+        {
+          path: "*",
+          element: <NotFound />,
         },
       ],
     },

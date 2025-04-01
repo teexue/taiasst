@@ -48,3 +48,9 @@ body {
   align-items: center !important;
   margin-right: 10px !important;
 }
+
+/* 修复按钮图标与文本对齐问题 */
+.ant-btn .ant-btn-icon {
+  display: flex !important;
+  align-items: center !important;
+}
