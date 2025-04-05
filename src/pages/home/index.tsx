@@ -115,8 +115,8 @@ function Home() {
 
   const fetchSystemInfo = async () => {
     try {
-      const data = await invoke("get_system_metrics");
-      setSystemInfo(data as SystemUsage);
+      const data = await invoke<SystemUsage>("get_system_metrics");
+      setSystemInfo(data);
       setLastUpdateTime(new Date().toLocaleTimeString());
       setLoading(false);
     } catch (error) {
@@ -127,8 +127,8 @@ function Home() {
 
   const fetchBasicInfo = async () => {
     try {
-      const data = await invoke("get_system_info");
-      setBasicInfo(data as SystemInfo);
+      const data = await invoke<SystemInfo>("get_system_info");
+      setBasicInfo(data);
     } catch (error) {
       console.error("获取基础系统信息失败:", error);
     }
@@ -140,7 +140,7 @@ function Home() {
     fetchBasicInfo();
 
     // 每5秒刷新一次
-    const interval = setInterval(fetchSystemInfo, 5000);
+    const interval = setInterval(fetchSystemInfo, 1000);
 
     // 组件卸载时清除定时器
     return () => clearInterval(interval);

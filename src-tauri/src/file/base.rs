@@ -24,4 +24,4 @@ pub fn rename_file(old_path: String, new_path: String) -> Result<(), String> {
 pub fn copy_file(source: String, destination: String) -> Result<(), String> {
     fs::copy(&source, &destination).map_err(|err| format!("复制文件失败: {}", err))?;
     Ok(())
-} 
+}

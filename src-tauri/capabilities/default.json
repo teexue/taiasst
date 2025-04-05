@@ -16,6 +16,7 @@
     "core:window:allow-unmaximize",
     "core:window:allow-hide",
     "core:window:allow-show",
+    "core:window:allow-set-size",
     "shell:default",
     "shell:allow-open",
     "autostart:allow-enable",
@@ -23,6 +24,14 @@
     "autostart:allow-is-enabled",
     "fs:allow-read-dir",
     "fs:allow-read-file",
-    "fs:allow-write-file"
+    "fs:allow-write-file",
+    "fs:allow-mkdir",
+    "fs:allow-exists",
+    "fs:allow-write-text-file",
+    "fs:allow-read-text-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [{ "path": "$APPDATA" }, { "path": "$APPDATA/**" }]
+    }
   ]
 }
