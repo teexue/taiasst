@@ -3,12 +3,13 @@ use tauri::AppHandle;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
-    Manager
+    Manager,
 };
 use tauri_plugin_autostart::MacosLauncher;
 
 mod file;
 mod system;
+mod plugin;
 
 fn show_window(app: &AppHandle) {
     let windows = app.webview_windows();
@@ -48,17 +49,22 @@ fn handle_menu_event(app: &AppHandle, event_id: &str) {
     }
 }
 
-fn create_tray_icon(app: &AppHandle, menu: Menu<tauri::Wry>) -> Result<TrayIcon, Box<dyn std::error::Error>> {
+fn create_tray_icon(
+    app: &AppHandle,
+    menu: Menu<tauri::Wry>,
+) -> Result<TrayIcon, Box<dyn std::error::Error>> {
     Ok(TrayIconBuilder::new()
         .icon(app.default_window_icon().unwrap().clone())
         .menu(&menu)
+        .tooltip("TaiASST")
         .show_menu_on_left_click(false)
         .on_tray_icon_event(move |icon: &TrayIcon, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
                 ..
-            } = event {
+            } = event
+            {
                 handle_tray_click(icon);
             }
         })
@@ -75,13 +81,19 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec![]),
         ))
         .plugin(tauri_plugin_shell::init())
-        .setup(setup)
+        .setup(|app| {
+            let _ = setup(app);
+            // 初始化插件管理器
+            let _ = plugin::init_plugin_manager(app.app_handle().clone());
+            Ok(())
+        })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = show_window(app);
         }))
@@ -94,15 +106,22 @@ pub fn run() {
             file::delete_file,
             file::rename_file,
             file::copy_file,
-            file::get_config_dir,
             file::read_local_tools_config,
             file::write_local_tools_config,
+            file::read_local_app_config,
+            file::write_local_app_config,
             system::get_system_metrics,
             system::get_cpu_metrics,
             system::get_memory_metrics,
             system::get_disk_metrics,
             system::get_gpu_metrics,
-            system::get_system_info
+            system::get_system_info,
+            plugin::get_plugin_dir,
+            plugin::load_plugin,
+            plugin::unload_plugin,
+            plugin::get_loaded_plugins,
+            plugin::call_plugin_function,
+            plugin::install_plugin_from_zip
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

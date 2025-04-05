@@ -30,6 +30,8 @@ png = "0.17.16"
 chrono = "0.4.40"
 sysinfo = "0.34.1"
 nvml-wrapper = "0.10.0"
+tokio = { version = "1", features = ["full"] }
+zip = "0.6.6"
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"] # or "postgres", or "mysql"
@@ -38,4 +40,8 @@ version = "2.0.0"
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
 tauri-plugin-single-instance = "2"
+tauri-plugin-updater = "2"
+
+libloading = "0.8"
+lazy_static = "1.4.0"
 

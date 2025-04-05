@@ -1,6 +1,17 @@
 {
   "identifier": "desktop-capability",
-  "platforms": ["macOS", "windows", "linux"],
-  "windows": ["main"],
-  "permissions": ["autostart:default", "dialog:default", "dialog:allow-open"]
+  "platforms": [
+    "macOS",
+    "windows",
+    "linux"
+  ],
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "autostart:default",
+    "dialog:default",
+    "dialog:allow-open",
+    "updater:default"
+  ]
 }
