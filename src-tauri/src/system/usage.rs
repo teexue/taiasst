@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sysinfo::{Disks, System};
 
-
 #[cfg(target_os = "windows")]
 use nvml_wrapper::Nvml;
 
@@ -272,9 +271,7 @@ pub async fn get_disk_metrics() -> Result<Vec<DiskUsage>, String> {
 /// Tauri命令：获取GPU使用情况
 #[tauri::command]
 pub async fn get_gpu_metrics() -> Result<Vec<GpuUsage>, String> {
-    tokio::task::spawn_blocking(move || {
-        get_gpu_usage()
-    })
-    .await
-    .map_err(|e| e.to_string())
+    tokio::task::spawn_blocking(move || get_gpu_usage())
+        .await
+        .map_err(|e| e.to_string())
 }

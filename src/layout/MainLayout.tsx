@@ -2,7 +2,13 @@ import React from "react";
 import { Layout, Menu, Avatar, Tag, Badge, Card } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import ThemeSwitcher from "../components/ThemeSwitcher";
-import { RiHome4Line, RiSettingsLine, RiToolsLine } from "@remixicon/react";
+import {
+  RiHome4Line,
+  RiPuzzle2Line,
+  RiRobot2Line,
+  RiSettingsLine,
+  RiToolsLine,
+} from "@remixicon/react";
 import WindowControls from "@/components/WindowControls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-shell";
@@ -26,6 +32,16 @@ function MainLayout() {
       key: "/tool",
       icon: <RiToolsLine size={16} />,
       label: "工具",
+    },
+    {
+      key: "/ai",
+      icon: <RiRobot2Line size={16} />,
+      label: "AI",
+    },
+    {
+      key: "/plugins",
+      icon: <RiPuzzle2Line size={16} />,
+      label: "插件",
     },
     {
       key: "/settings",
@@ -108,7 +124,7 @@ function MainLayout() {
           </div>
         </Sider>
         <Layout className="h-full">
-          <Content className="p-3 overflow-auto h-full">
+          <Content className="p-3 overflow-auto h-full content-area">
             <Card
               className="w-full h-full rounded-xl shadow-md overflow-auto bg-color-bg-card dark:bg-color-bg-tertiary"
               styles={{ body: { padding: "16px" } }}

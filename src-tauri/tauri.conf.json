@@ -19,11 +19,16 @@
         "minimizable": true,
         "visible": true,
         "alwaysOnTop": false,
-        "center": true
+        "center": true,
+        "dragDropEnabled": false
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/plugins/**/*.js"]
+      }
     }
   },
   "bundle": {
