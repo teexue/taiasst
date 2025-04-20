@@ -29,9 +29,23 @@
     "fs:allow-exists",
     "fs:allow-write-text-file",
     "fs:allow-read-text-file",
+    "fs:allow-remove",
+    "log:allow-log",
+    "sql:default",
+    "sql:allow-load",
+    "sql:allow-execute",
+    "sql:allow-select",
+    "sql:allow-close",
     {
       "identifier": "fs:scope",
-      "allow": [{ "path": "$APPDATA" }, { "path": "$APPDATA/**" }]
+      "allow": [
+        { "path": "$APPDATA" },
+        { "path": "$APPDATA/**" },
+        { "path": "$APPCONFIG" },
+        { "path": "$APPCONFIG/**" },
+        { "path": "$TEMP/TaiASST/" },
+        { "path": "$TEMP/TaiASST/**" }
+      ]
     }
   ]
 }

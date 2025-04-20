@@ -54,3 +54,19 @@ body {
   display: flex !important;
   align-items: center !important;
 }
+
+/* 全局禁止文本选择 */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* 可以通过添加特定类来允许某些元素文本可选择 */
+.selectable {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
