@@ -39,7 +39,7 @@ export async function execute(sql: string, params: any[] = []) {
  */
 export async function select<T = any>(
   sql: string,
-  params: any[] = []
+  params: any[] = [],
 ): Promise<T[]> {
   const database = await initDatabase();
   const result = await database.select<T>(sql, params);

@@ -64,7 +64,7 @@ export async function uninstallPlugin(pluginId: string): Promise<boolean> {
 export async function installPluginWithProgress(
   filePath: string,
   origin: Origin,
-  progressCallback?: (stage: InstallProgressStage, message?: string) => void
+  progressCallback?: (stage: InstallProgressStage, message?: string) => void,
 ): Promise<PluginMetadata> {
   try {
     progressCallback?.("start", "开始安装插件...");
@@ -77,12 +77,12 @@ export async function installPluginWithProgress(
       const config = await getPluginConfigFile();
 
       const existingPlugin = config.plugins.find(
-        (p: PluginMetadata) => p.id === metadata.id
+        (p: PluginMetadata) => p.id === metadata.id,
       );
       if (existingPlugin) {
         progressCallback?.(
           "already_installed",
-          `插件 '${metadata.name}' (ID: ${metadata.id}) 已经安装。`
+          `插件 '${metadata.name}' (ID: ${metadata.id}) 已经安装。`,
         );
         info(`插件 '${metadata.name}' (ID: ${metadata.id}) 已经安装。`);
         return existingPlugin; // 如果已安装，直接返回现有元数据
@@ -90,7 +90,7 @@ export async function installPluginWithProgress(
     } catch (metaError: any) {
       const errorMsg = String(metaError?.message || metaError);
       error(
-        `[installPluginWithProgress] Error during metadata check: ${errorMsg}`
+        `[installPluginWithProgress] Error during metadata check: ${errorMsg}`,
       );
       progressCallback?.("error", `安装失败: ${errorMsg}`);
       throw metaError; // 如果元数据检查严重失败则重新抛出
@@ -99,9 +99,8 @@ export async function installPluginWithProgress(
     // 2. 执行实际安装（解压文件等）
     progressCallback?.("installing", "正在解压和安装文件...");
 
-    const installedMetadata = await backend.plugin.installPluginFromZip(
-      filePath
-    );
+    const installedMetadata =
+      await backend.plugin.installPluginFromZip(filePath);
 
     // 3. 更新配置文件
     progressCallback?.("installing", "正在更新配置...");
@@ -128,7 +127,7 @@ export async function installPluginWithProgress(
           const meta = await backend.plugin.getPluginMetadataFromZip(filePath);
           const conf = await getPluginConfigFile();
           const existing = conf.plugins.find(
-            (p: PluginMetadata) => p.id === meta.id
+            (p: PluginMetadata) => p.id === meta.id,
           );
           if (existing) return existing;
         }
@@ -149,8 +148,8 @@ export async function installPluginFromUrl(
   progressCallback?: (
     stage: DownloadProgressStage,
     progress?: number, // progress 现在是可选的，因为后端下载不提供进度
-    message?: string
-  ) => void
+    message?: string,
+  ) => void,
 ): Promise<PluginMetadata> {
   let downloadedFilePath: string | null = null;
   try {
@@ -176,7 +175,7 @@ export async function installPluginFromUrl(
       (stage, message) => {
         // stage 类型现在匹配 DownloadProgressStage，因为 DownloadProgressStage 包含了 InstallProgressStage
         progressCallback?.(stage, undefined, message);
-      }
+      },
     );
 
     // 清理下载的临时文件
@@ -201,12 +200,11 @@ export async function installPluginFromUrl(
       try {
         if (downloadedFilePath) {
           // 需要下载的文件路径来获取元数据
-          const meta = await backend.plugin.getPluginMetadataFromZip(
-            downloadedFilePath
-          );
+          const meta =
+            await backend.plugin.getPluginMetadataFromZip(downloadedFilePath);
           const conf = await getPluginConfigFile();
           const existing = conf.plugins.find(
-            (p: PluginMetadata) => p.id === meta.id
+            (p: PluginMetadata) => p.id === meta.id,
           );
           if (existing) return existing;
         }
@@ -227,8 +225,8 @@ export async function installPluginFromUrl(
       } catch (cleanupError) {
         warn(
           `出错后清理临时下载文件 ${downloadedFilePath} 失败: ${String(
-            cleanupError
-          )}`
+            cleanupError,
+          )}`,
         );
       }
     }

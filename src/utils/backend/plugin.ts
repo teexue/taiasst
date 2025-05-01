@@ -53,7 +53,7 @@ export async function getPluginPath(pluginId: string): Promise<string> {
  * @throws 如果获取失败或插件不存在，则抛出错误信息字符串
  */
 export async function getPluginMetadata(
-  pluginId: string
+  pluginId: string,
 ): Promise<PluginMetadata> {
   return await invoke<PluginMetadata>("get_plugin_metadata", { pluginId });
 }
@@ -100,7 +100,7 @@ export async function getLoadedPlugins(): Promise<PluginMetadata[]> {
 export async function callPluginFunction(
   pluginId: string,
   functionName: string,
-  args: number[] // Vec<i32>
+  args: number[], // Vec<i32>
 ): Promise<number> {
   return await invoke<number>("call_plugin_function", {
     pluginId,
@@ -117,7 +117,7 @@ export async function callPluginFunction(
  * @throws 如果文件不存在、不是ZIP文件、缺少metadata.json或解析失败，则抛出错误信息字符串
  */
 export async function getPluginMetadataFromZip(
-  zipPath: string
+  zipPath: string,
 ): Promise<PluginMetadata> {
   return await invoke<PluginMetadata>("get_plugin_metadata_from_zip", {
     zipPath,
@@ -132,7 +132,7 @@ export async function getPluginMetadataFromZip(
  * @throws 如果解压失败、找不到metadata.json、解析失败或插件已存在，则抛出错误信息字符串
  */
 export async function installPluginFromZip(
-  zipPath: string
+  zipPath: string,
 ): Promise<PluginMetadata> {
   // 注意：此命令需要 AppHandle，invoke 会自动注入
   return await invoke<PluginMetadata>("install_plugin_from_zip", { zipPath });

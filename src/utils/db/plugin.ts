@@ -25,7 +25,7 @@ function now(): number {
  */
 export async function savePluginMetadata(
   metadata: PluginMetadata,
-  origin: Origin
+  origin: Origin,
 ): Promise<void> {
   const timestamp = now();
   const pluginTypeStr = metadata.plugin_type
@@ -36,7 +36,7 @@ export async function savePluginMetadata(
     // 检查插件是否已存在
     const existingPlugin = await select<{ plugin_id: string }>(
       "SELECT plugin_id FROM plugin_metadata WHERE plugin_id = ?",
-      [metadata.id]
+      [metadata.id],
     );
 
     // 使用事务处理
@@ -67,7 +67,7 @@ export async function savePluginMetadata(
           metadata.backend_lib,
           timestamp,
           metadata.id,
-        ]
+        ],
       );
 
       // 清除旧数据
@@ -98,7 +98,7 @@ export async function savePluginMetadata(
           metadata.backend_lib,
           timestamp,
           timestamp,
-        ]
+        ],
       );
     }
 
@@ -108,7 +108,7 @@ export async function savePluginMetadata(
         await execute(
           `INSERT INTO plugin_dependency (plugin_id, dependency_id, dependency_version, created_at, updated_at) 
           VALUES (?, ?, ?, ?, ?)`,
-          [metadata.id, dep.id, dep.version, timestamp, timestamp]
+          [metadata.id, dep.id, dep.version, timestamp, timestamp],
         );
       }
     }
@@ -128,7 +128,7 @@ export async function savePluginMetadata(
           metadata.menu_options.menu_group,
           timestamp,
           timestamp,
-        ]
+        ],
       );
     }
 
@@ -152,7 +152,7 @@ export async function savePluginMetadata(
             option.required ? 1 : 0,
             timestamp,
             timestamp,
-          ]
+          ],
         );
       }
     }
@@ -243,7 +243,7 @@ export async function getPluginList(): Promise<PluginMetadata[]> {
  * @returns 插件元数据，如果不存在则返回null
  */
 export async function getPlugin(
-  pluginId: string
+  pluginId: string,
 ): Promise<PluginMetadata | null> {
   try {
     // 查询插件元数据
@@ -316,7 +316,7 @@ export async function getPlugin(
  * @returns 插件依赖列表
  */
 async function getPluginDependencies(
-  pluginId: string
+  pluginId: string,
 ): Promise<PluginDependency[]> {
   try {
     const rows = await select<{
@@ -324,7 +324,7 @@ async function getPluginDependencies(
       dependency_version: string;
     }>(
       "SELECT dependency_id, dependency_version FROM plugin_dependency WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
 
     return rows.map((row) => ({
@@ -343,7 +343,7 @@ async function getPluginDependencies(
  * @returns 插件菜单选项，如果不存在则返回null
  */
 async function getPluginMenuOptions(
-  pluginId: string
+  pluginId: string,
 ): Promise<MenuOptions | null> {
   try {
     const rows = await select<{
@@ -354,7 +354,7 @@ async function getPluginMenuOptions(
       menu_group: string;
     }>(
       "SELECT show_in_menu, menu_icon, menu_title, menu_order, menu_group FROM plugin_menu_options WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
 
     if (rows.length === 0) {
@@ -381,7 +381,7 @@ async function getPluginMenuOptions(
  * @returns 插件配置选项列表
  */
 async function getPluginConfigOptions(
-  pluginId: string
+  pluginId: string,
 ): Promise<ConfigOptions[]> {
   try {
     const rows = await select<{
@@ -392,7 +392,7 @@ async function getPluginConfigOptions(
       required: number;
     }>(
       "SELECT name, description, default_value, options, required FROM plugin_config_options WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
 
     return rows.map((row) => {
@@ -429,7 +429,7 @@ export async function deletePlugin(pluginId: string): Promise<boolean> {
     // 插件元数据表有外键约束，删除插件元数据会级联删除其他相关数据
     const result = await execute(
       "DELETE FROM plugin_metadata WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
     return result.rowsAffected > 0;
   } catch (err) {
@@ -447,7 +447,7 @@ export async function getPluginConfig(pluginId: string): Promise<any> {
   try {
     const rows = await select<{ config_data: string }>(
       "SELECT config_data FROM plugin_config_data WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
 
     if (rows.length === 0) {
@@ -469,7 +469,7 @@ export async function getPluginConfig(pluginId: string): Promise<any> {
  */
 export async function setPluginConfig(
   pluginId: string,
-  config: any
+  config: any,
 ): Promise<boolean> {
   const timestamp = now();
   const configJson = JSON.stringify(config);
@@ -478,7 +478,7 @@ export async function setPluginConfig(
     // 检查插件是否存在
     const pluginExists = await select<{ plugin_id: string }>(
       "SELECT plugin_id FROM plugin_metadata WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
 
     if (pluginExists.length === 0) {
@@ -489,20 +489,20 @@ export async function setPluginConfig(
     // 检查配置是否已存在
     const configExists = await select<{ id: number }>(
       "SELECT id FROM plugin_config_data WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
 
     if (configExists.length > 0) {
       // 更新现有配置
       await execute(
         "UPDATE plugin_config_data SET config_data = ?, updated_at = ? WHERE plugin_id = ?",
-        [configJson, timestamp, pluginId]
+        [configJson, timestamp, pluginId],
       );
     } else {
       // 插入新配置
       await execute(
         "INSERT INTO plugin_config_data (plugin_id, config_data, created_at, updated_at) VALUES (?, ?, ?, ?)",
-        [pluginId, configJson, timestamp, timestamp]
+        [pluginId, configJson, timestamp, timestamp],
       );
     }
 
@@ -522,7 +522,7 @@ export async function deletePluginConfig(pluginId: string): Promise<boolean> {
   try {
     const result = await execute(
       "DELETE FROM plugin_config_data WHERE plugin_id = ?",
-      [pluginId]
+      [pluginId],
     );
     return result.rowsAffected > 0;
   } catch (err) {
@@ -538,7 +538,7 @@ export async function deletePluginConfig(pluginId: string): Promise<boolean> {
 export async function getAllPluginConfigs(): Promise<Record<string, any>> {
   try {
     const rows = await select<{ plugin_id: string; config_data: string }>(
-      "SELECT plugin_id, config_data FROM plugin_config_data"
+      "SELECT plugin_id, config_data FROM plugin_config_data",
     );
 
     const result: Record<string, any> = {};
@@ -587,7 +587,7 @@ export async function getPluginConfigFile(): Promise<PluginConfig> {
  */
 export async function addPluginToConfig(
   metadata: PluginMetadata,
-  origin: Origin
+  origin: Origin,
 ): Promise<void> {
   await savePluginMetadata(metadata, origin);
 }

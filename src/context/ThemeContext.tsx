@@ -47,7 +47,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // 检查本地存储中的主题设置
     const storedTheme = getLocalStorage("theme");
     const prefersDarkMode = window.matchMedia(
-      "(prefers-color-scheme: dark)"
+      "(prefers-color-scheme: dark)",
     ).matches;
 
     // 如果本地存储有主题设置，使用它；否则检查系统偏好

@@ -21,7 +21,7 @@ function Plugins() {
   const [installModalVisible, setInstallModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [currentPlugin, setCurrentPlugin] = useState<PluginMetadata | null>(
-    null
+    null,
   );
   const [activeTabKey, setActiveTabKey] = useState("local");
   const [refreshTrigger, setRefreshTrigger] = useState(0);

@@ -79,7 +79,7 @@ export interface HttpResponse<T = any> {
 export async function get(
   url: string,
   headers?: HttpHeaders,
-  params?: HttpQueryParams
+  params?: HttpQueryParams,
 ): Promise<string> {
   return await invoke<string>("http_get", { url, headers, params });
 }
@@ -98,7 +98,7 @@ export async function post(
   url: string,
   body: string,
   headers?: HttpHeaders,
-  params?: HttpQueryParams
+  params?: HttpQueryParams,
 ): Promise<string> {
   return await invoke<string>("http_post", { url, body, headers, params });
 }
@@ -117,7 +117,7 @@ export async function put(
   url: string,
   body: string,
   headers?: HttpHeaders,
-  params?: HttpQueryParams
+  params?: HttpQueryParams,
 ): Promise<string> {
   return await invoke<string>("http_put", { url, body, headers, params });
 }
@@ -134,7 +134,7 @@ export async function put(
 export async function delete_(
   url: string,
   headers?: HttpHeaders,
-  params?: HttpQueryParams
+  params?: HttpQueryParams,
 ): Promise<string> {
   return await invoke<string>("http_delete", { url, headers, params });
 }
@@ -151,7 +151,7 @@ export async function delete_(
 export async function downloadFile(
   url: string,
   savePath: string,
-  headers?: HttpHeaders
+  headers?: HttpHeaders,
 ): Promise<string> {
   return await invoke<string>("http_download_file", {
     url,

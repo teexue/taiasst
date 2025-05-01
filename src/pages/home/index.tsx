@@ -420,7 +420,7 @@ function Home() {
                       <Progress
                         percent={Math.round(
                           ((gpu.memory_used ?? 0) / (gpu.memory_total || 1)) *
-                            100
+                            100,
                         )}
                         status="active"
                       />

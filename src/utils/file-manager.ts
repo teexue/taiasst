@@ -75,7 +75,7 @@ export async function createSubDir(dirPath: string, subDirName: string) {
 export async function deleteSubDir(
   dirPath: string,
   subDirName: string,
-  recursive: boolean = false
+  recursive: boolean = false,
 ) {
   const subDirPath = await join(dirPath, subDirName);
   await remove(subDirPath, { recursive });
@@ -111,7 +111,7 @@ export async function readTextFileFromDir(dirPath: string, fileName: string) {
 export async function writeTextFileToDir(
   dirPath: string,
   fileName: string,
-  content: string
+  content: string,
 ) {
   const filePath = await join(dirPath, fileName);
   await writeTextFile(filePath, content);
@@ -137,7 +137,7 @@ export async function getFileInfo(filePath: string) {
 // 从网络URL下载文件到临时目录
 export async function downloadFileFromUrl(
   url: string,
-  fileName?: string
+  fileName?: string,
 ): Promise<string> {
   try {
     // 确保临时目录存在

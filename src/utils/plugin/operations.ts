@@ -45,7 +45,7 @@ export async function loadAllPlugins(): Promise<PluginMetadata[]> {
   try {
     const currentBackendLoadedPlugins = await getPluginList(); // 获取后端实际加载的列表
     const currentBackendLoadedIds = new Set(
-      currentBackendLoadedPlugins.map((p: PluginMetadata) => p.id)
+      currentBackendLoadedPlugins.map((p: PluginMetadata) => p.id),
     );
     const config = await getPluginConfigFile();
     const pluginIds = new Set<string>();
@@ -69,7 +69,7 @@ export async function loadAllPlugins(): Promise<PluginMetadata[]> {
         }
         return acc;
       },
-      []
+      [],
     );
 
     for (const pluginMetadata of uniquePluginsFromConfig) {
@@ -83,7 +83,7 @@ export async function loadAllPlugins(): Promise<PluginMetadata[]> {
       } catch (err) {
         if (!String(err).includes("已经加载")) {
           error(
-            `加载插件 ${pluginMetadata.id} 时发生未预期错误: ${String(err)}`
+            `加载插件 ${pluginMetadata.id} 时发生未预期错误: ${String(err)}`,
           );
         }
       }
@@ -130,7 +130,7 @@ export async function getAllPluginConfig(): Promise<PluginMetadata[]> {
  * @returns 插件的配置
  */
 export async function getPluginConfig(
-  pluginId: string
+  pluginId: string,
 ): Promise<PluginMetadata | undefined> {
   const plugins = await getPluginList();
   return plugins.find((p: PluginMetadata) => p.id === pluginId);
@@ -143,7 +143,7 @@ export async function getPluginConfig(
  */
 export async function setPluginConfig(
   pluginId: string,
-  config: ConfigOptions[]
+  config: ConfigOptions[],
 ): Promise<void> {
   const plugins = await getPluginList();
   const plugin = plugins.find((p: PluginMetadata) => p.id === pluginId);

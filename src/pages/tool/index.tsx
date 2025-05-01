@@ -46,12 +46,12 @@ function Tool() {
 
   // 根据类型过滤插件
   const toolPlugins = plugins.filter(
-    (plugin) => plugin.plugin_type === TOOL_TYPE
+    (plugin) => plugin.plugin_type === TOOL_TYPE,
   );
 
   const localPlugins = plugins.filter(
     (plugin) =>
-      plugin.origin === LOCAL_ORIGIN && plugin.plugin_type === TOOL_TYPE
+      plugin.origin === LOCAL_ORIGIN && plugin.plugin_type === TOOL_TYPE,
   );
 
   // 打开插件详情页

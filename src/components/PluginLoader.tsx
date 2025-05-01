@@ -79,7 +79,7 @@ const PluginLoader = React.memo(
     // 提取插件ID
     const pluginId = useMemo(
       () => (typeof plugin === "string" ? plugin : plugin.id),
-      [plugin]
+      [plugin],
     );
     // 错误处理函数
     const handleError = useCallback(
@@ -88,7 +88,7 @@ const PluginLoader = React.memo(
         setState((prev) => ({ ...prev, loading: false, error: errorMsg }));
         onError?.(errorMsg);
       },
-      [onError]
+      [onError],
     );
     // 插件加载逻辑
     useEffect(() => {
@@ -109,8 +109,8 @@ const PluginLoader = React.memo(
             typeof window[PLUGIN_GLOBAL_VAR] === "function"
               ? window[PLUGIN_GLOBAL_VAR]
               : typeof window[PLUGIN_GLOBAL_VAR]?.default === "function"
-              ? window[PLUGIN_GLOBAL_VAR].default
-              : null;
+                ? window[PLUGIN_GLOBAL_VAR].default
+                : null;
           if (!Component) {
             throw new Error("插件未提供有效的React组件");
           }
@@ -140,8 +140,8 @@ const PluginLoader = React.memo(
       !errorContent
         ? null
         : typeof errorContent === "function"
-        ? errorContent(errorMsg)
-        : errorContent;
+          ? errorContent(errorMsg)
+          : errorContent;
     // 确定要渲染的内容
     let content: React.ReactNode = null;
     // 根据状态决定渲染内容
@@ -171,7 +171,7 @@ const PluginLoader = React.memo(
     }
     // 统一返回
     return content ? <>{content}</> : null;
-  }
+  },
 );
 
 export default PluginLoader;
