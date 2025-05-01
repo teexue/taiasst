@@ -141,7 +141,7 @@ function PluginTab() {
             ...acc,
             [opt.name]: opt.default_value,
           }),
-          {}
+          {},
         )}
         labelCol={{ span: 6 }}
         wrapperCol={{ span: 16 }}

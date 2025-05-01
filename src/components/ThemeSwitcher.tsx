@@ -1,7 +1,7 @@
-import React from 'react';
-import { Button } from 'antd';
+import React from "react";
+import { Button } from "antd";
 import { RiMoonLine, RiSunFill } from "@remixicon/react";
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from "../context/ThemeContext";
 
 const ThemeSwitcher: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -25,4 +25,4 @@ const ThemeSwitcher: React.FC = () => {
   );
 };
 
-export default ThemeSwitcher; 
+export default ThemeSwitcher;

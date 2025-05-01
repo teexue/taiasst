@@ -66,7 +66,7 @@ export const ContextMenuProvider: React.FC<ContextMenuProviderProps> = ({
   const showContextMenu = (
     x: number,
     y: number,
-    items: MenuItem[] = defaultMenuItems
+    items: MenuItem[] = defaultMenuItems,
   ) => {
     setContextMenu({
       visible: true,

@@ -102,7 +102,7 @@ function LocalInstallTab({ onCancel, onSuccess }: LocalInstallTabProps) {
               key: "installPlugin",
             });
           }
-        }
+        },
       );
 
       setFileList([]);

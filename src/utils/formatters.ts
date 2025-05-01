@@ -8,7 +8,7 @@ import { warn } from "@tauri-apps/plugin-log";
  */
 export const formatBytes = (
   bytes: number | null | undefined,
-  decimals = 2
+  decimals = 2,
 ): string => {
   if (bytes === null || bytes === undefined || bytes === 0) return "0 字节";
 

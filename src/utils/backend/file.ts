@@ -76,7 +76,7 @@ export async function deleteFile(path: string): Promise<void> {
  */
 export async function renameFile(
   oldPath: string,
-  newPath: string
+  newPath: string,
 ): Promise<void> {
   await invoke<void>("rename_file", { oldPath, newPath });
 }
@@ -90,7 +90,7 @@ export async function renameFile(
  */
 export async function copyFile(
   source: string,
-  destination: string
+  destination: string,
 ): Promise<void> {
   await invoke<void>("copy_file", { source, destination });
 }
@@ -136,7 +136,7 @@ export async function readAppConfig(configType: string): Promise<AppConfig> {
  */
 export async function writeAppConfig(
   configType: string,
-  config: AppConfig
+  config: AppConfig,
 ): Promise<void> {
   await invoke<void>("write_app_config", { configType, config });
 }
@@ -178,7 +178,7 @@ export async function readLocalToolsConfig(): Promise<ToolsConfig> {
  * @throws 如果创建目录、序列化或写入失败，则抛出错误信息字符串
  */
 export async function writeLocalToolsConfig(
-  config: ToolsConfig
+  config: ToolsConfig,
 ): Promise<void> {
   await invoke<void>("write_local_tools_config", { config });
 }

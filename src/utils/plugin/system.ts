@@ -33,7 +33,7 @@ export async function initializePluginSystem(): Promise<void> {
     };
     await message(
       "插件系统初始化失败，部分插件可能无法正常工作: " + String(err),
-      options
+      options,
     );
   }
 }

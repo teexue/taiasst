@@ -48,7 +48,7 @@ export const useSystemMonitor = (intervalMs = 5000) => {
         }
       }
     },
-    [loading]
+    [loading],
   ); // 添加 loading 依赖，避免在 loading 期间重复触发
 
   // 初始加载

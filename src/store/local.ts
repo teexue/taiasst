@@ -1,4 +1,3 @@
-
 function getLocalStorage(key: string) {
   return localStorage.getItem(key);
 }

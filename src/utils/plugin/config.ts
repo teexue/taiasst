@@ -43,7 +43,7 @@ export async function getPluginConfig(pluginId: string): Promise<any> {
  */
 export async function setPluginConfig(
   pluginId: string,
-  pluginSpecificConfig: any
+  pluginSpecificConfig: any,
 ): Promise<boolean> {
   try {
     return await pluginDb.setPluginConfig(pluginId, pluginSpecificConfig);
@@ -89,7 +89,7 @@ export async function getPluginConfigFile(): Promise<PluginConfig> {
  * @param config 插件配置
  */
 export async function savePluginConfigFile(
-  config: PluginConfig
+  config: PluginConfig,
 ): Promise<void> {
   try {
     // 将config中的插件保存到数据库
@@ -117,7 +117,7 @@ export async function savePluginConfigFile(
  */
 export async function addPluginToConfig(
   metadata: PluginMetadata,
-  origin: Origin
+  origin: Origin,
 ): Promise<void> {
   try {
     await pluginDb.addPluginToConfig(metadata, origin);
