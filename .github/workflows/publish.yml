@@ -34,6 +34,11 @@ jobs:
         with:
           node-version: lts/*
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10 # 指定所需的 pnpm 版本
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
