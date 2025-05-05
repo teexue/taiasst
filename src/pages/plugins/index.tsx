@@ -1,5 +1,16 @@
-import { useState } from "react";
-import { Button, Space, Typography, Modal, message, Tabs } from "antd";
+import { useState, useCallback } from "react";
+import { toast } from "sonner";
+import {
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Tabs,
+  Tab,
+} from "@heroui/react";
 import {
   RiAddCircleLine,
   RiRefreshLine,
@@ -15,96 +26,150 @@ import LocalInstallTab from "./LocalInstallTab";
 import NetworkInstallTab from "./NetworkInstallTab";
 import { PluginMetadata } from "@/types/plugin";
 
-const { Title } = Typography;
+// Modal ClassNames based on design doc
+const modalClassNames = {
+  backdrop: "bg-default/50 backdrop-blur-sm backdrop-saturate-150",
+  base: "glass-light dark:glass-dark border border-divider/30 shadow-xl mx-4",
+  header: "border-b border-divider/30 font-medium",
+  footer: "border-t border-divider/30",
+  closeButton: "hover:bg-default-100/50 active:scale-95",
+};
 
 function Plugins() {
-  const [installModalVisible, setInstallModalVisible] = useState(false);
-  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const {
+    isOpen: isOpenInstall,
+    onOpen: onOpenInstall,
+    onClose: onCloseInstall,
+    onOpenChange: onOpenChangeInstall,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenPreview,
+    onOpen: onOpenPreview,
+    onClose: onClosePreview,
+    onOpenChange: onOpenChangePreview,
+  } = useDisclosure();
+
   const [currentPlugin, setCurrentPlugin] = useState<PluginMetadata | null>(
     null,
   );
-  const [activeTabKey, setActiveTabKey] = useState("local");
+  const [installTabKey, setInstallTabKey] = useState("local");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleRefresh = () => {
-    // 通过更新refreshTrigger触发子组件刷新
+  const handleRefresh = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
-  };
+    toast.info("插件列表已刷新");
+  }, []);
 
-  // 预览插件
-  const handlePreview = (plugin: PluginMetadata) => {
-    setCurrentPlugin(plugin);
-    setPreviewModalVisible(true);
-  };
+  const handlePreview = useCallback(
+    (plugin: PluginMetadata) => {
+      setCurrentPlugin(plugin);
+      onOpenPreview();
+    },
+    [onOpenPreview],
+  );
 
-  // 预览模态框关闭处理
-  const handlePreviewModalClose = () => {
-    setPreviewModalVisible(false);
-  };
-
-  const handleOpenPluginDir = async () => {
+  const handleOpenPluginDir = useCallback(async () => {
     try {
       const dir = await getPluginBaseDir();
       await open(dir as string);
     } catch (err) {
       error(`打开插件目录失败: ${String(err)}`);
-      message.error("打开插件目录失败");
+      toast.error("打开插件目录失败");
     }
-  };
+  }, []);
 
-  // 渲染安装插件模态框
+  const closeInstallModal = useCallback(() => {
+    onCloseInstall();
+  }, [onCloseInstall]);
+
+  const handleInstallSuccess = useCallback(() => {
+    closeInstallModal();
+    handleRefresh();
+    toast.success("插件安装成功!");
+  }, [closeInstallModal, handleRefresh]);
+
   const renderInstallModal = () => (
     <Modal
-      title="安装插件"
-      open={installModalVisible}
-      onCancel={() => setInstallModalVisible(false)}
-      footer={null}
+      isOpen={isOpenInstall}
+      onOpenChange={onOpenChangeInstall}
+      backdrop="blur"
+      classNames={modalClassNames}
+      size="xl"
     >
-      <Tabs
-        activeKey={activeTabKey}
-        onChange={setActiveTabKey}
-        items={[
-          {
-            key: "local",
-            label: (
-              <span>
-                <RiFolderLine /> 本地安装
-              </span>
-            ),
-            children: (
+      <ModalContent>
+        <ModalHeader>安装插件</ModalHeader>
+        <ModalBody className="px-2 py-0 md:px-4">
+          <Tabs
+            aria-label="安装方式"
+            selectedKey={installTabKey}
+            onSelectionChange={(key) => setInstallTabKey(key as string)}
+            color="primary"
+            variant="underlined"
+            fullWidth
+            classNames={{ panel: "pt-4" }}
+          >
+            <Tab
+              key="local"
+              title={
+                <span className="flex items-center gap-1.5">
+                  <RiFolderLine size={16} /> 本地安装
+                </span>
+              }
+            >
               <LocalInstallTab
-                onCancel={() => setInstallModalVisible(false)}
-                onSuccess={() => {
-                  setInstallModalVisible(false);
-                  handleRefresh();
-                }}
+                onCancel={closeInstallModal}
+                onSuccess={handleInstallSuccess}
               />
-            ),
-          },
-          {
-            key: "network",
-            label: (
-              <span>
-                <RiGlobalLine /> 网络安装
-              </span>
-            ),
-            children: (
+            </Tab>
+            <Tab
+              key="network"
+              title={
+                <span className="flex items-center gap-1.5">
+                  <RiGlobalLine size={16} /> 网络安装
+                </span>
+              }
+            >
               <NetworkInstallTab
-                onCancel={() => setInstallModalVisible(false)}
-                onSuccess={() => {
-                  setInstallModalVisible(false);
-                  handleRefresh();
-                }}
+                onCancel={closeInstallModal}
+                onSuccess={handleInstallSuccess}
               />
-            ),
-          },
-        ]}
-      />
+            </Tab>
+          </Tabs>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+
+  const renderPreviewModal = () => (
+    <Modal
+      isOpen={isOpenPreview}
+      onOpenChange={onOpenChangePreview}
+      size="3xl"
+      backdrop="blur"
+      classNames={modalClassNames}
+    >
+      <ModalContent>
+        <ModalHeader>{currentPlugin?.name || "插件"} - 预览</ModalHeader>
+        <ModalBody className="max-h-[70vh] overflow-y-auto">
+          {currentPlugin ? (
+            <PluginLoader plugin={currentPlugin} key={currentPlugin.id} />
+          ) : (
+            <div className="text-center p-8 text-foreground/60">
+              无法加载预览。
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="bordered" radius="md" onPress={onClosePreview}>
+            关闭
+          </Button>
+        </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <div
         style={{
           marginBottom: 16,
@@ -112,57 +177,36 @@ function Plugins() {
           justifyContent: "space-between",
         }}
       >
-        <Title level={4} style={{ margin: 0 }}>
-          插件管理
-        </Title>
-        <Space>
+        <h4 className="text-lg font-semibold m-0">插件管理</h4>
+        <div className="flex gap-2 items-center">
           <Button
-            icon={<RiAddCircleLine />}
-            type="primary"
-            onClick={() => setInstallModalVisible(true)}
+            startContent={<RiAddCircleLine />}
+            color="primary"
+            onPress={onOpenInstall}
           >
             安装新插件
           </Button>
-          <Button icon={<RiRefreshLine />} onClick={handleRefresh}>
+          <Button startContent={<RiRefreshLine />} onPress={handleRefresh}>
             刷新
           </Button>
-        </Space>
+        </div>
       </div>
 
       <PluginListTab
         onPreview={handlePreview}
         onUpdate={handleRefresh}
-        key={refreshTrigger} // 用于强制组件重新渲染以刷新数据
+        key={refreshTrigger}
       />
 
       <div style={{ marginTop: 16, textAlign: "center" }}>
-        <Button type="link" onClick={handleOpenPluginDir}>
+        <Button variant="light" onPress={handleOpenPluginDir}>
           打开插件目录
         </Button>
       </div>
 
-      {/* 渲染安装插件模态框 */}
       {renderInstallModal()}
-
-      {/* 预览插件的模态框 */}
-      <Modal
-        title="插件预览"
-        open={previewModalVisible}
-        onCancel={handlePreviewModalClose}
-        footer={[
-          <Button key="close" onClick={handlePreviewModalClose}>
-            关闭
-          </Button>,
-        ]}
-        width={800}
-        destroyOnClose={true}
-      >
-        <PluginLoader
-          plugin={currentPlugin?.id || ""}
-          key={currentPlugin?.id || "no-plugin"}
-        />
-      </Modal>
-    </>
+      {renderPreviewModal()}
+    </div>
   );
 }
 

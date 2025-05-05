@@ -1,0 +1,153 @@
+// src/themes/light.ts
+// 浅色主题 - 晨雾紫色调
+import { ThemeConfig } from "./base";
+
+export const lightTheme: ThemeConfig = {
+  layout: {},
+  colors: {
+    background: {
+      DEFAULT: "#f8f9fc",
+      foreground: "#4a4a4a",
+    },
+    foreground: {
+      DEFAULT: "#11181C",
+      50: "#f8f9fa",
+      100: "#e5e7ea",
+      200: "#c5c9ce",
+      300: "#a5abb2",
+      400: "#7d8695",
+      500: "#5c6370",
+      600: "#4a4a4a",
+      700: "#393939",
+      800: "#292929",
+      900: "#191919",
+    },
+    primary: {
+      DEFAULT: "#9a8eda", // 晨雾紫 - 与设计规范保持一致
+      foreground: "#ffffff",
+      50: "#f3f4ff",
+      100: "#e5e3f7",
+      200: "#d4d1f2",
+      300: "#b8b3e9", // 浅薰衣草
+      400: "#a99beb",
+      500: "#9a8eda", // 主品牌色
+      600: "#8a7fca", // 深色主色调
+      700: "#7a70ba",
+      800: "#6a61aa",
+      900: "#5a529a",
+    },
+    secondary: {
+      DEFAULT: "#b8b3e9", // 浅薰衣草
+      foreground: "#ffffff",
+      50: "#f9f8fe",
+      100: "#f3f2fc",
+      200: "#e8e6fa",
+      300: "#dcd9f7",
+      400: "#cac2f7",
+      500: "#b8b3e9",
+      600: "#a6a2d7",
+      700: "#9491c5",
+      800: "#8280b3",
+      900: "#706fa1",
+    },
+    success: {
+      DEFAULT: "#88c9a1", // 薄荷绿
+      foreground: "#ffffff",
+      50: "#f0f8f4",
+      100: "#e0f1e8",
+      200: "#d0eadc",
+      300: "#c0e3d0",
+      400: "#a4d6b7",
+      500: "#88c9a1",
+      600: "#7db994",
+      700: "#73a987",
+      800: "#69997b",
+      900: "#5f896f",
+    },
+    warning: {
+      DEFAULT: "#ffb28b", // 浅杏色
+      foreground: "#ffffff",
+      50: "#fff5f0",
+      100: "#ffebe0",
+      200: "#ffe0d0",
+      300: "#ffd5c0",
+      400: "#ffc3a5",
+      500: "#ffb28b",
+      600: "#eaaa85",
+      700: "#d59a77",
+      800: "#c08a69",
+      900: "#ab7a5b",
+    },
+    danger: {
+      DEFAULT: "#f37f89", // 深珊瑚粉
+      foreground: "#ffffff",
+      50: "#fef0f2",
+      100: "#fce0e5",
+      200: "#fad0d7",
+      300: "#f8c0ca",
+      400: "#f5a0ac",
+      500: "#f37f89",
+      600: "#e37c85",
+      700: "#d36f77",
+      800: "#c3616a",
+      900: "#b3545c",
+    },
+    divider: {
+      DEFAULT: "#e0e0e5",
+      foreground: "#4a4a4a",
+      50: "#f8f8fc",
+      100: "#f0f0f5",
+      200: "#e8e8ed",
+      300: "#e0e0e5",
+      400: "#d0d0d5",
+      500: "#c0c0c5",
+      600: "#a0a0a5",
+      700: "#808085",
+      800: "#606065",
+      900: "#404045",
+    },
+    content1: {
+      DEFAULT: "#ffffff",
+      foreground: "#4a4a4a",
+    },
+    content2: {
+      DEFAULT: "#f5f7fa",
+      foreground: "#4a4a4a",
+    },
+    content3: {
+      DEFAULT: "#f3f4ff",
+      foreground: "#4a4a4a",
+    },
+    content4: {
+      DEFAULT: "#f0f0f5",
+      foreground: "#4a4a4a",
+    },
+    default: {
+      DEFAULT: "#f5f7fa",
+      foreground: "#4a4a4a",
+      50: "#ffffff",
+      100: "#f8f9fc",
+      200: "#f5f7fa",
+      300: "#f0f2f5",
+      400: "#e8ebf0",
+      500: "#4a4a4a",
+      600: "#d0d3d8",
+      700: "#c0c3c8",
+      800: "#b0b3b8",
+      900: "#a0a3a8",
+    },
+    focus: {
+      DEFAULT: "#9a8eda",
+      50: "#f3f4ff",
+      100: "#e5e3f7",
+      200: "#d4d1f2",
+      300: "#b8b3e9",
+      400: "#a99beb",
+      500: "#9a8eda",
+      600: "#8a7fca",
+      700: "#7a70ba",
+      800: "#6a61aa",
+      900: "#5a529a",
+    },
+  },
+};

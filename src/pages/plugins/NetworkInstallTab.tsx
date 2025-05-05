@@ -1,17 +1,9 @@
-import { useState } from "react";
-import {
-  Button,
-  Space,
-  Typography,
-  Form,
-  Input,
-  Progress,
-  message,
-} from "antd";
+import { useState, useCallback } from "react";
+import { Input, Button, Progress } from "@heroui/react";
+import { toast } from "sonner";
 import { error } from "@tauri-apps/plugin-log";
 import { installPluginFromUrl } from "@/utils/plugin";
-
-const { Text } = Typography;
+import { motion } from "framer-motion";
 
 interface NetworkInstallTabProps {
   onCancel: () => void;
@@ -19,146 +11,200 @@ interface NetworkInstallTabProps {
 }
 
 function NetworkInstallTab({ onCancel, onSuccess }: NetworkInstallTabProps) {
-  const [form] = Form.useForm();
-  const [downloadLoading, setDownloadLoading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [showProgress, setShowProgress] = useState(false);
+  const [pluginUrl, setPluginUrl] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [progressData, setProgressData] = useState<{
+    stage: string;
+    progress: number;
+    msg?: string;
+  } | null>(null);
 
-  // 从网络安装插件
-  const handleNetworkInstall = async () => {
+  // Validate URL
+  const validateUrl = useCallback((url: string): string | null => {
+    if (!url) return "请输入插件URL";
     try {
-      // 表单验证
-      const values = await form.validateFields();
-      const url = values.pluginUrl;
+      new URL(url);
+    } catch (_) {
+      return "请输入有效的URL地址";
+    }
+    if (!url.endsWith(".zip")) return "URL必须指向.zip文件";
+    return null;
+  }, []);
 
-      setDownloadLoading(true);
-      setShowProgress(true);
-      setDownloadProgress(0);
+  // Install handler
+  const handleNetworkInstall = useCallback(async () => {
+    const validationError = validateUrl(pluginUrl);
+    setUrlError(validationError);
+    if (validationError) return;
 
-      // 使用统一的网络安装流程
-      await installPluginFromUrl(url, (stage, progress, msg) => {
-        // 更新进度指示器
-        if (stage === "downloading" && progress !== undefined) {
-          setDownloadProgress(progress);
-        } else if (stage === "downloaded") {
-          setDownloadProgress(100);
-        } else if (stage === "installing") {
-          message.loading({
-            content: msg,
-            key: "downloadPlugin",
-            duration: 0,
+    setIsLoading(true);
+    setProgressData({ stage: "start", progress: 0 });
+
+    try {
+      await installPluginFromUrl(pluginUrl, (stage, progress, msg) => {
+        // Update progress state
+        setProgressData({
+          stage,
+          progress:
+            progress ??
+            (stage === "downloaded" ? 100 : (progressData?.progress ?? 0)),
+          msg,
+        });
+
+        // Show toast for final states or important steps
+        if (stage === "installing") {
+          toast.loading(msg || "正在安装...", {
+            id: "networkInstall",
+            duration: Infinity,
           });
         } else if (stage === "complete") {
-          setShowProgress(false);
-          message.success({
-            content: msg,
-            key: "downloadPlugin",
-          });
+          toast.success(msg || "安装完成!", { id: "networkInstall" });
+          setTimeout(() => {
+            setPluginUrl("");
+            onSuccess();
+          }, 300);
         } else if (stage === "error") {
-          setShowProgress(false);
-          message.error({
-            content: msg,
-            key: "downloadPlugin",
-          });
+          toast.error(msg || "安装失败", { id: "networkInstall" });
         }
       });
-
-      form.resetFields();
-      onSuccess();
     } catch (err) {
-      error(`从网络安装插件失败: ${String(err)}`);
-      setShowProgress(false);
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      error(`从网络安装插件失败: ${errorMsg}`);
+      setProgressData({
+        stage: "error",
+        progress: 0,
+        msg: `安装失败: ${errorMsg}`,
+      });
+      toast.error(`安装失败: ${errorMsg}`, { id: "networkInstall" });
     } finally {
-      setDownloadLoading(false);
+      // Keep loading true until success/error state is final in progressData
+      // setIsLoading(false);
     }
-  };
+  }, [pluginUrl, validateUrl, onSuccess, progressData]);
+
+  const handleCancel = useCallback(() => {
+    setPluginUrl("");
+    setUrlError(null);
+    setProgressData(null);
+    setIsLoading(false);
+    onCancel();
+  }, [onCancel]);
+
+  // Determine button/progress state
+  const isWorking =
+    isLoading ||
+    progressData?.stage === "downloading" ||
+    progressData?.stage === "installing";
+  const isFinished =
+    progressData?.stage === "complete" || progressData?.stage === "error";
 
   return (
-    <>
-      <Form form={form} layout="vertical">
-        <Form.Item
-          name="pluginUrl"
-          label="插件URL"
-          rules={[
-            { required: true, message: "请输入插件URL" },
-            {
-              type: "url",
-              message: "请输入有效的URL地址",
-            },
-            {
-              validator: (_, value) => {
-                if (value && !value.endsWith(".zip")) {
-                  return Promise.reject("插件URL必须指向.zip文件");
-                }
-                return Promise.resolve();
-              },
-            },
-          ]}
-          help="输入插件的ZIP包下载链接，例如：https://github.com/user/repo/releases/download/v1.0/plugin.zip"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col gap-4"
+    >
+      <Input
+        label="插件 URL"
+        placeholder="https://.../plugin.zip"
+        value={pluginUrl}
+        onValueChange={(value) => {
+          setPluginUrl(value);
+          if (urlError) setUrlError(null);
+        }}
+        isRequired
+        isClearable
+        errorMessage={urlError}
+        isInvalid={!!urlError}
+        description="输入插件的 .zip 包下载链接 (例如从 GitHub Releases 获取)"
+        variant="bordered"
+        radius="lg"
+        isDisabled={isWorking || isFinished}
+        classNames={{ inputWrapper: "bg-background/70 dark:bg-default-100/50" }}
+      />
+
+      {/* Example Link (Optional) */}
+      {/* <div className="flex items-center gap-1 text-xs">
+        <span className="text-foreground/60">示例:</span>
+        <Button
+          variant="light"
+          size="sm"
+          className="text-primary h-auto p-0"
+          startContent={<RiGithubFill size={14} />}
+          onPress={() => setPluginUrl("EXAMPLE_URL")}
         >
-          <Input
-            placeholder="https://example.com/plugin.zip"
-            allowClear
-            size="large"
-          />
-        </Form.Item>
+          Tauri Plugins
+        </Button>
+      </div> */}
 
-        <div className="example-links" style={{ marginBottom: 16 }}>
-          <Text type="secondary">示例：</Text>
-          <Button
-            type="link"
-            onClick={() =>
-              form.setFieldsValue({
-                pluginUrl:
-                  "https://github.com/tauri-apps/plugins-workspace/archive/refs/heads/v1.zip",
-              })
-            }
-          >
-            Tauri 插件示例
-          </Button>
-        </div>
-      </Form>
-
-      {/* 下载进度条 */}
-      {showProgress && (
-        <div style={{ marginTop: 16, marginBottom: 16 }}>
+      {/* Progress Bar Area */}
+      {progressData && progressData.stage !== "error" && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          className="mt-2"
+        >
           <Progress
-            percent={Math.round(downloadProgress)}
-            status={downloadProgress >= 100 ? "success" : "active"}
-            strokeColor={downloadProgress >= 100 ? "#52c41a" : "#1890ff"}
+            aria-label="下载/安装进度"
+            value={progressData.progress}
+            size="sm"
+            color={
+              progressData.stage === "complete"
+                ? "success"
+                : progressData.stage === "error"
+                  ? "danger"
+                  : "primary"
+            }
+            isIndeterminate={
+              progressData.stage === "start" ||
+              progressData.stage === "installing"
+            }
+            showValueLabel={progressData.stage === "downloading"}
+            label={
+              <span className="text-xs text-foreground/70">
+                {progressData.msg || ""}
+              </span>
+            }
+            className="w-full"
+            classNames={{ label: "mt-1 text-center" }}
           />
-          <div style={{ textAlign: "center", marginTop: 8 }}>
-            <Text type="secondary">
-              {downloadProgress < 100
-                ? `正在下载：${Math.round(downloadProgress)}%`
-                : "下载完成，准备安装..."}
-            </Text>
-          </div>
-        </div>
+        </motion.div>
       )}
 
-      <div style={{ marginTop: 16, textAlign: "right" }}>
-        <Space>
-          <Button
-            onClick={() => {
-              onCancel();
-              form.resetFields();
-              setShowProgress(false);
-            }}
-          >
-            取消
-          </Button>
-          <Button
-            type="primary"
-            loading={downloadLoading}
-            onClick={handleNetworkInstall}
-            disabled={showProgress}
-          >
-            下载并安装
-          </Button>
-        </Space>
+      {/* Show error message specifically */}
+      {progressData?.stage === "error" && (
+        <p className="text-danger text-xs mt-2 text-center">
+          {progressData.msg || "安装失败"}
+        </p>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex justify-end items-center gap-2 mt-4">
+        <Button
+          variant="flat"
+          radius="md"
+          onPress={handleCancel}
+          // disabled={isWorking} // Allow cancel anytime maybe?
+        >
+          {isFinished ? "关闭" : "取消"}
+        </Button>
+        <Button
+          color="primary"
+          radius="md"
+          isLoading={isWorking}
+          onPress={handleNetworkInstall}
+          isDisabled={!pluginUrl || !!urlError || isWorking || isFinished}
+          className="shadow-sm"
+        >
+          {isWorking
+            ? progressData?.stage === "downloading"
+              ? "下载中"
+              : "安装中"
+            : "下载并安装"}
+        </Button>
       </div>
-    </>
+    </motion.div>
   );
 }
 

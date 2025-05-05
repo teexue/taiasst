@@ -1,12 +1,12 @@
 import "./App.css";
 import AsyncRouter from "./routes/AsyncRouter";
-import { ThemeProvider } from "./context/ThemeContext";
+import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { error } from "@tauri-apps/plugin-log";
 import { initializePluginSystem } from "./utils/plugin";
 import { ContextMenuProvider, MenuItem } from "./context/RightClickMenuContext";
 import RightClickMenu from "./components/RightClickMenu";
-
+import { useTheme } from "@heroui/use-theme";
 // 默认全局右键菜单项
 const defaultMenuItems: MenuItem[] = [
   {
@@ -22,6 +22,8 @@ const defaultMenuItems: MenuItem[] = [
 ];
 
 function App() {
+  useTheme();
+
   useEffect(() => {
     // 初始化插件系统
     initializePluginSystem().catch((err) => {
@@ -50,12 +52,11 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <ContextMenuProvider defaultMenuItems={defaultMenuItems}>
-        <AsyncRouter />
-        <RightClickMenu />
-      </ContextMenuProvider>
-    </ThemeProvider>
+    <ContextMenuProvider defaultMenuItems={defaultMenuItems}>
+      <AsyncRouter />
+      <Toaster position="top-right" richColors />
+      <RightClickMenu />
+    </ContextMenuProvider>
   );
 }
 

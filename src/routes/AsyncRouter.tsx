@@ -9,44 +9,45 @@ import Settings from "@/pages/settings";
 import Plugins from "@/pages/plugins";
 import AiApp from "@/pages/ai";
 
-function AsyncRouter() {
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <MainLayout />,
-      children: [
-        {
-          path: "/",
-          element: <Home />,
-        },
-        {
-          path: "/tool",
-          element: <Tool />,
-        },
-        {
-          path: "/tool/detail/:id",
-          element: <ToolDetail />,
-        },
-        {
-          path: "/ai",
-          element: <AiApp />,
-        },
-        {
-          path: "/settings",
-          element: <Settings />,
-        },
-        {
-          path: "/plugins",
-          element: <Plugins />,
-        },
-        {
-          path: "*",
-          element: <NotFound />,
-        },
-      ],
-    },
-  ]);
+// 将路由实例移至组件外，防止每次渲染时重建
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MainLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/tool",
+        element: <Tool />,
+      },
+      {
+        path: "/tool/detail/:id",
+        element: <ToolDetail />,
+      },
+      {
+        path: "/ai",
+        element: <AiApp />,
+      },
+      {
+        path: "/settings",
+        element: <Settings />,
+      },
+      {
+        path: "/plugins",
+        element: <Plugins />,
+      },
+      {
+        path: "*",
+        element: <NotFound />,
+      },
+    ],
+  },
+]);
 
+function AsyncRouter() {
   return <RouterProvider router={router} />;
 }
 
