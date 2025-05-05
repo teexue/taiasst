@@ -1,0 +1,153 @@
+// src/themes/blue.ts
+// 蓝色主题 - 海洋蓝色调
+import { ThemeConfig } from "./base";
+
+export const blueTheme: ThemeConfig = {
+  extend: "light", // 继承浅色主题的基本设置
+  colors: {
+    background: {
+      DEFAULT: "#f0f7ff", // 浅蓝背景
+      foreground: "#24292e",
+    },
+    foreground: {
+      DEFAULT: "#11181C", // Updated for contrast
+      50: "#f7f9fc",
+      100: "#e5e7ea",
+      200: "#c5c9ce",
+      300: "#a5abb2",
+      400: "#7d8695",
+      500: "#5c6370",
+      600: "#4a4a4a",
+      700: "#393939",
+      800: "#24292e",
+      900: "#191919",
+    },
+    primary: {
+      DEFAULT: "#0072f5", // 蓝色主色调
+      foreground: "#ffffff",
+      50: "#e6f1fe",
+      100: "#cce3fd",
+      200: "#99c7fb",
+      300: "#66aaf9",
+      400: "#338ef7",
+      500: "#0072f5", // 主色
+      600: "#005bc4",
+      700: "#004493",
+      800: "#002e62",
+      900: "#001731",
+    },
+    secondary: {
+      DEFAULT: "#7dacff", // 辅助蓝色
+      foreground: "#ffffff",
+      50: "#f5f9ff",
+      100: "#ebf3ff",
+      200: "#d6e7ff",
+      300: "#c2dbff",
+      400: "#9dc3ff",
+      500: "#7dacff", // 辅助色
+      600: "#648ccc",
+      700: "#4b6999",
+      800: "#324766",
+      900: "#192333",
+    },
+    success: {
+      DEFAULT: "#17c964",
+      foreground: "#ffffff",
+      50: "#e8fcf1",
+      100: "#d0f7e5",
+      200: "#a1eeca",
+      300: "#73e6af",
+      400: "#44dd95",
+      500: "#17c964",
+      600: "#13a452",
+      700: "#0e7d3e",
+      800: "#0a572b",
+      900: "#052e17",
+    },
+    warning: {
+      DEFAULT: "#f5a524",
+      foreground: "#ffffff",
+      50: "#fef4e6",
+      100: "#fde9cc",
+      200: "#fbd399",
+      300: "#f9bd66",
+      400: "#f7a733",
+      500: "#f5a524",
+      600: "#c4841d",
+      700: "#936316",
+      800: "#62420e",
+      900: "#312107",
+    },
+    danger: {
+      DEFAULT: "#f31260",
+      foreground: "#ffffff",
+      50: "#fee7ef",
+      100: "#fdd0df",
+      200: "#faa0bf",
+      300: "#f871a0",
+      400: "#f54180",
+      500: "#f31260",
+      600: "#c20e4d",
+      700: "#910b3a",
+      800: "#610726",
+      900: "#300413",
+    },
+    divider: {
+      DEFAULT: "#e6edf5",
+      foreground: "#24292e",
+      50: "#f8fbff",
+      100: "#f5f9ff",
+      200: "#ebf3ff",
+      300: "#e6edf5",
+      400: "#d5dce6",
+      500: "#c4cdd6",
+      600: "#a4adb6",
+      700: "#848d96",
+      800: "#646d76",
+      900: "#444d56",
+    },
+    content1: {
+      DEFAULT: "#ffffff",
+      foreground: "#24292e",
+    },
+    content2: {
+      DEFAULT: "#f7f9fc",
+      foreground: "#24292e",
+    },
+    content3: {
+      DEFAULT: "#f0f7ff",
+      foreground: "#24292e",
+    },
+    content4: {
+      DEFAULT: "#e6f1fe",
+      foreground: "#24292e",
+    },
+    default: {
+      DEFAULT: "#f7f9fc",
+      foreground: "#24292e",
+      50: "#ffffff",
+      100: "#f9fbfd",
+      200: "#f7f9fc",
+      300: "#f0f4f8",
+      400: "#e8ecf0",
+      500: "#4a4a4a",
+      600: "#d0d4d8",
+      700: "#c0c4c8",
+      800: "#b0b4b8",
+      900: "#a0a4a8",
+    },
+    focus: {
+      DEFAULT: "#0072f5", // 对应主色
+      50: "#e6f1fe",
+      100: "#cce3fd",
+      200: "#99c7fb",
+      300: "#66aaf9",
+      400: "#338ef7",
+      500: "#0072f5",
+      600: "#005bc4",
+      700: "#004493",
+      800: "#002e62",
+      900: "#001731",
+    },
+  },
+};

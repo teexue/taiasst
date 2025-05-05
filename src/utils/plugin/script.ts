@@ -58,12 +58,6 @@ export async function injectGlobalDependencies(): Promise<void> {
   try {
     const React = await import("react");
     (window as any).React = React.default || React;
-
-    const Antd = await import("antd");
-    (window as any).antd = Antd;
-
-    const Icons = await import("@ant-design/icons");
-    (window as any).Icons = Icons;
   } catch (err) {
     error(`注入全局依赖失败: ${String(err)}`);
     // 这里可能需要抛出错误，因为插件可能依赖这些库

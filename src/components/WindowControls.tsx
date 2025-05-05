@@ -26,7 +26,7 @@ const WindowControls: React.FC<WindowControlsProps> = ({
   return (
     <div className="flex items-center">
       <div
-        className="w-[50px] h-[40px] flex items-center justify-center cursor-pointer transition-colors duration-200 hover:bg-gray-800 dark:hover:bg-gray-700/30"
+        className="w-[50px] h-[40px] flex items-center justify-center cursor-pointer transition-colors duration-200 hover:bg-primary-200"
         onClick={onMinimize}
       >
         <svg
@@ -39,7 +39,7 @@ const WindowControls: React.FC<WindowControlsProps> = ({
         </svg>
       </div>
       <div
-        className="w-[50px] h-[40px] flex items-center justify-center cursor-pointer transition-colors duration-200 hover:bg-gray-800 dark:hover:bg-gray-700/30"
+        className="w-[50px] h-[40px] flex items-center justify-center cursor-pointer transition-colors duration-200 hover:bg-primary-200"
         onClick={handleMaximize}
       >
         {isMaximized ? (

@@ -1,18 +1,17 @@
-import { Space, Typography, Button, Avatar, Tag } from "antd";
+import { Button } from "@heroui/react";
+import { Avatar, Chip } from "@heroui/react";
+import { toast } from "sonner";
 import { open } from "@tauri-apps/plugin-shell";
 import { RiGithubFill } from "@remixicon/react";
 import APP_LOGO from "/logo.png";
 import { check } from "@tauri-apps/plugin-updater";
-import { message } from "antd";
 import { useState } from "react";
-const { Title, Paragraph } = Typography;
 
 interface AboutTabProps {
   onUpdate?: () => void;
 }
 
 function AboutTab({ onUpdate }: AboutTabProps) {
-  const [messageApi, contextHolder] = message.useMessage();
   const [checkUpdateLoading, setCheckUpdateLoading] = useState(false);
 
   const APP_NAME = import.meta.env.VITE_APP_NAME;
@@ -33,8 +32,9 @@ function AboutTab({ onUpdate }: AboutTabProps) {
       if (onUpdate) {
         onUpdate();
       }
+      toast.info("请在设置的更新选项卡查看更新信息。");
     } catch (error) {
-      messageApi.error(`检查更新失败: 请检查网络连接！`);
+      toast.error(`检查更新失败: 请检查网络连接！`);
     } finally {
       setCheckUpdateLoading(false);
     }
@@ -42,47 +42,47 @@ function AboutTab({ onUpdate }: AboutTabProps) {
 
   return (
     <>
-      {contextHolder}
-      <Space
-        direction="vertical"
-        align="center"
-        style={{ width: "100%", marginBottom: 24 }}
-      >
-        <Avatar shape="square" src={APP_LOGO} size={100} />
-        <Title level={3} style={{ margin: "4px 0" }}>
-          {APP_NAME}
-        </Title>
-        <Space>
-          <Tag color="blue">轻量级</Tag>
-          <Tag color="green">无广告</Tag>
-          <Tag color="purple">开源</Tag>
-        </Space>
-      </Space>
-      <Space
-        direction="vertical"
-        align="center"
-        style={{ width: "100%", margin: "0 auto" }}
-      >
-        <Paragraph style={{ textAlign: "center" }}>{APP_DESCRIPTION}</Paragraph>
-        <Paragraph style={{ textAlign: "center" }}>
-          当前版本：<Tag color="purple">V{APP_VERSION}</Tag>
-        </Paragraph>
-        <Space>
-          <Button
-            type="default"
-            onClick={checkUpdate}
-            loading={checkUpdateLoading}
-          >
+      <div className="flex flex-col items-center w-full mb-6">
+        <Avatar
+          src={APP_LOGO}
+          size="lg"
+          radius="md"
+          className="w-24 h-24 mb-2"
+        />
+        <h3 className="text-xl font-semibold my-1">{APP_NAME}</h3>
+        <div className="flex gap-2 items-center">
+          <Chip color="primary" size="sm">
+            轻量级
+          </Chip>
+          <Chip color="success" size="sm">
+            无广告
+          </Chip>
+          <Chip color="secondary" size="sm">
+            开源
+          </Chip>
+        </div>
+      </div>
+      <div className="flex flex-col items-center w-full mx-auto">
+        <p className="text-center">{APP_DESCRIPTION}</p>
+        <p className="text-center">
+          当前版本：
+          <Chip color="secondary" variant="flat" size="sm">
+            V{APP_VERSION}
+          </Chip>
+        </p>
+        <div className="flex gap-2 items-center">
+          <Button onPress={checkUpdate} isLoading={checkUpdateLoading}>
             检查更新
           </Button>
-          <Button type="primary" onClick={openGitHub}>
-            <Space align="center">
-              <RiGithubFill />
-              <span>访问项目</span>
-            </Space>
+          <Button
+            color="primary"
+            onPress={openGitHub}
+            startContent={<RiGithubFill />}
+          >
+            访问项目
           </Button>
-        </Space>
-      </Space>
+        </div>
+      </div>
     </>
   );
 }

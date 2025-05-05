@@ -1,6 +1,6 @@
-import { PluginMetadata } from "@/types/plugin";
+import { PluginMetadata, ConfigOptions } from "@/types/plugin";
 import { getAllPluginConfig } from "@/utils/plugin/operations";
-import { Tabs, Form, Input, Select } from "antd";
+import { Tabs, Tab, Input, Select, SelectItem, Button } from "@heroui/react";
 import { useEffect, useState } from "react";
 
 const testPluginConfigs: PluginMetadata[] = [
@@ -120,6 +120,78 @@ const testPluginConfigs: PluginMetadata[] = [
   },
 ];
 
+function PluginConfigForm({ plugin }: { plugin: PluginMetadata }) {
+  const initialConfig = plugin.config_options?.reduce(
+    (acc, opt: ConfigOptions) => {
+      acc[opt.name] = opt.default_value || "";
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
+
+  const [configValues, setConfigValues] = useState(initialConfig || {});
+
+  const handleValueChange = (name: string, value: any) => {
+    setConfigValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    console.log("保存配置:", plugin.id, configValues);
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      {plugin.config_options?.map((option: ConfigOptions) => {
+        const selectedKeysSet = new Set<string>();
+        if (configValues[option.name]) {
+          selectedKeysSet.add(String(configValues[option.name]));
+        }
+
+        return (
+          <div key={option.name} className="flex flex-col gap-1">
+            <label className="text-sm font-medium">
+              {option.name}
+              {option.required && <span className="text-danger ml-1">*</span>}
+            </label>
+            {option.options ? (
+              <Select
+                aria-label={option.name}
+                placeholder={`请选择 ${option.name}`}
+                selectedKeys={selectedKeysSet}
+                onSelectionChange={(keys) =>
+                  handleValueChange(option.name, Array.from(keys)[0])
+                }
+                disallowEmptySelection={option.required}
+                description={option.description}
+              >
+                {option.options.map((opt) => (
+                  <SelectItem key={opt}>{opt}</SelectItem>
+                ))}
+              </Select>
+            ) : (
+              <Input
+                aria-label={option.name}
+                placeholder={`请输入 ${option.name}`}
+                value={configValues[option.name]}
+                onValueChange={(value) => handleValueChange(option.name, value)}
+                isRequired={option.required}
+                description={option.description}
+              />
+            )}
+          </div>
+        );
+      })}
+      {plugin.config_options && plugin.config_options.length > 0 && (
+        <div className="flex justify-end mt-4">
+          <Button color="primary" onPress={handleSave}>
+            保存
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PluginTab() {
   const [pluginConfig, setPluginConfig] = useState<PluginMetadata[]>([]);
   const getPluginSettings = async () => {
@@ -131,64 +203,24 @@ function PluginTab() {
     getPluginSettings();
   }, []);
 
-  const items = pluginConfig.map((item) => ({
-    label: item.name,
-    key: item.id,
-    children: (
-      <Form
-        initialValues={item.config_options?.reduce(
-          (acc, opt) => ({
-            ...acc,
-            [opt.name]: opt.default_value,
-          }),
-          {},
-        )}
-        labelCol={{ span: 6 }}
-        wrapperCol={{ span: 16 }}
-      >
-        {item.config_options?.map((option) => (
-          <Form.Item
-            key={option.name}
-            label={<span className="truncate block">{option.name}</span>}
-            name={option.name}
-            tooltip={{
-              title: option.name,
-              placement: "topLeft",
-            }}
-            style={{ marginBottom: 16 }}
-            rules={[
-              {
-                required: option.required,
-                message: `请输入${option.name}`,
-              },
-            ]}
-          >
-            {option.options ? (
-              <Select
-                placeholder={`请选择${option.name}`}
-                allowClear={!option.required}
-              >
-                {option.options.map((opt) => (
-                  <Select.Option key={opt} value={opt}>
-                    {opt}
-                  </Select.Option>
-                ))}
-              </Select>
-            ) : (
-              <Input
-                placeholder={`请输入${option.name}`}
-                allowClear={!option.required}
-              />
-            )}
-          </Form.Item>
-        ))}
-      </Form>
-    ),
-  }));
-
   return (
     <>
-      <Tabs tabPosition="left" items={items} />
+      <Tabs
+        aria-label="插件配置"
+        items={pluginConfig}
+        isVertical={true}
+        color="primary"
+        variant="underlined"
+        className="h-full"
+      >
+        {(item) => (
+          <Tab key={item.id} title={item.name}>
+            <div className="p-4 max-w-xl mx-auto">
+              <PluginConfigForm plugin={item} />
+            </div>
+          </Tab>
+        )}
+      </Tabs>
     </>
   );
 }

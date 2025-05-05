@@ -1,4 +1,5 @@
-import { Button, message } from "antd";
+import { Button } from "@heroui/react";
+import { toast } from "sonner";
 import { RiRestartLine } from "@remixicon/react";
 import { restartPluginSystem } from "@/utils/plugin";
 import { error } from "@tauri-apps/plugin-log";
@@ -9,10 +10,10 @@ function SystemTools() {
     setRestartLoading(true);
     try {
       await restartPluginSystem();
-      message.success("插件系统已重启");
+      toast.success("插件系统已重启");
     } catch (err) {
       error(`重启插件系统失败: ${String(err)}`);
-      message.error("重启插件系统失败");
+      toast.error("重启插件系统失败");
     } finally {
       setRestartLoading(false);
     }
@@ -20,8 +21,11 @@ function SystemTools() {
 
   return (
     <>
-      <Button onClick={handleRestartPluginSystem} loading={restartLoading}>
-        <RiRestartLine />
+      <Button
+        onPress={handleRestartPluginSystem}
+        isLoading={restartLoading}
+        startContent={<RiRestartLine />}
+      >
         重启插件系统
       </Button>
     </>
