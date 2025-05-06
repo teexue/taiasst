@@ -1,4 +1,4 @@
-# TaiASST 工具助手
+# TaiASST
 
 <p align="center">
   <img src="./public/logo.png" width="120" alt="TaiASST Logo">
@@ -17,7 +17,7 @@
 
 ## 📖 简介
 
-TaiASST（TAI Assistant）是一个轻量级、模块化的桌面应用工具箱。它旨在为用户提供高效便捷的工具集合，帮助用户提高工作效率，简化日常操作。
+TaiASST（Teexue AI Assistant）是一个轻量级、模块化、智能化的桌面应用工具箱。它旨在为用户提供高效便捷的工具集合，帮助用户提高工作效率，简化日常操作。
 
 ## 🛠️ 当前进度
 
