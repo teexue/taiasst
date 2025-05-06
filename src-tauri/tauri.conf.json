@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "TaiASST工具助手",
+  "productName": "TaiASST",
   "version": "0.1.0",
   "identifier": "com.teexue.taiasst",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "TaiASST工具助手",
+        "title": "TaiASST",
         "width": 1024,
         "height": 768,
         "decorations": false,
