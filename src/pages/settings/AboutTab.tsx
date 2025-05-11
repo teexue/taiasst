@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { Avatar, Chip } from "@heroui/react";
+import { Chip } from "@heroui/react";
 import { toast } from "sonner";
 import { open } from "@tauri-apps/plugin-shell";
 import { RiGithubFill } from "@remixicon/react";
@@ -34,6 +34,7 @@ function AboutTab({ onUpdate }: AboutTabProps) {
       }
       toast.info("请在设置的更新选项卡查看更新信息。");
     } catch (error) {
+      console.error(error);
       toast.error(`检查更新失败: 请检查网络连接！`);
     } finally {
       setCheckUpdateLoading(false);
@@ -43,12 +44,7 @@ function AboutTab({ onUpdate }: AboutTabProps) {
   return (
     <>
       <div className="flex flex-col items-center w-full mb-6">
-        <Avatar
-          src={APP_LOGO}
-          size="lg"
-          radius="md"
-          className="w-24 h-24 mb-2"
-        />
+        <img src={APP_LOGO} alt={APP_NAME} className="w-24 h-24 mb-2" />
         <h3 className="text-xl font-semibold my-1">{APP_NAME}</h3>
         <div className="flex gap-2 items-center">
           <Chip color="primary" size="sm">
@@ -70,14 +66,23 @@ function AboutTab({ onUpdate }: AboutTabProps) {
             V{APP_VERSION}
           </Chip>
         </p>
-        <div className="flex gap-2 items-center">
-          <Button onPress={checkUpdate} isLoading={checkUpdateLoading}>
+        <div className="flex gap-2 items-center mt-4">
+          <Button
+            variant="shadow"
+            size="sm"
+            onPress={checkUpdate}
+            isLoading={checkUpdateLoading}
+            className="shadow-sm"
+          >
             检查更新
           </Button>
           <Button
             color="primary"
+            variant="shadow"
+            size="sm"
             onPress={openGitHub}
             startContent={<RiGithubFill />}
+            className="shadow-sm hover:shadow-primary/30 click-scale"
           >
             访问项目
           </Button>

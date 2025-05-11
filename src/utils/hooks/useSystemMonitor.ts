@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import backend, { SystemInfo, SystemUsage } from "@/utils/backend";
+import backend, { SystemInfo, SystemUsage } from "@/services";
 import { error } from "@tauri-apps/plugin-log";
 
 /**

@@ -43,8 +43,8 @@ function NotFound() {
       action={
         <Button
           color="primary"
-          variant="solid"
-          radius="full"
+          variant="shadow"
+          size="sm"
           startContent={<RiHome2Line size={16} />}
           onPress={() => navigate("/")}
           className="shadow-sm hover:shadow-primary/30 click-scale"

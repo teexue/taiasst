@@ -1,31 +1,7 @@
 // src/themes/base.ts
 // 定义通用布局配置
 
-export const baseLayout = {
-  disabledOpacity: "0.5",
-  radius: {
-    small: "0.25rem", // 4px
-    medium: "0.375rem", // 6px
-    large: "0.5rem", // 8px
-  },
-  borderWidth: {
-    small: "1px",
-    medium: "1.5px",
-    large: "2px",
-  },
-  fontSize: {
-    tiny: "0.75rem", // 12px
-    small: "0.875rem", // 14px
-    medium: "1rem", // 16px
-    large: "1.125rem", // 18px
-  },
-  lineHeight: {
-    tiny: "1rem", // 16px
-    small: "1.25rem", // 20px
-    medium: "1.5rem", // 24px
-    large: "1.75rem", // 28px
-  },
-};
+export const baseLayout = {};
 
 // 更精确的颜色类型
 export type ColorScale = Partial<{

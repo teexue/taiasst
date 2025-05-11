@@ -22,6 +22,8 @@ function SystemTools() {
   return (
     <>
       <Button
+        variant="shadow"
+        size="sm"
         onPress={handleRestartPluginSystem}
         isLoading={restartLoading}
         startContent={<RiRestartLine />}

@@ -1,5 +1,5 @@
 import { join } from "@tauri-apps/api/path";
-import backend from "@/utils/backend";
+import backend from "@/services";
 import { PluginMetadata, Origin } from "@/types/plugin";
 import { InstallProgressStage, DownloadProgressStage } from "./types";
 import { loadAllPlugins } from "./operations";

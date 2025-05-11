@@ -19,7 +19,7 @@ import {
 } from "@remixicon/react";
 import { error } from "@tauri-apps/plugin-log";
 import { getPluginBaseDir } from "@/utils/plugin";
-import { open } from "@tauri-apps/plugin-shell";
+import { openPath } from "@tauri-apps/plugin-opener";
 import PluginLoader from "@/components/PluginLoader";
 import PluginListTab from "./PluginListTab";
 import LocalInstallTab from "./LocalInstallTab";
@@ -71,7 +71,7 @@ function Plugins() {
   const handleOpenPluginDir = useCallback(async () => {
     try {
       const dir = await getPluginBaseDir();
-      await open(dir as string);
+      await openPath(dir as string);
     } catch (err) {
       error(`打开插件目录失败: ${String(err)}`);
       toast.error("打开插件目录失败");
@@ -111,7 +111,7 @@ function Plugins() {
             <Tab
               key="local"
               title={
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 text-sm">
                   <RiFolderLine size={16} /> 本地安装
                 </span>
               }
@@ -124,7 +124,7 @@ function Plugins() {
             <Tab
               key="network"
               title={
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 text-sm">
                   <RiGlobalLine size={16} /> 网络安装
                 </span>
               }
@@ -150,7 +150,7 @@ function Plugins() {
     >
       <ModalContent>
         <ModalHeader>{currentPlugin?.name || "插件"} - 预览</ModalHeader>
-        <ModalBody className="max-h-[70vh] overflow-y-auto">
+        <ModalBody className="max-h-[70vh] overflow-y-auto p-0 md:p-4">
           {currentPlugin ? (
             <PluginLoader plugin={currentPlugin} key={currentPlugin.id} />
           ) : (
@@ -160,7 +160,7 @@ function Plugins() {
           )}
         </ModalBody>
         <ModalFooter>
-          <Button variant="bordered" radius="md" onPress={onClosePreview}>
+          <Button variant="shadow" size="sm" onPress={onClosePreview}>
             关闭
           </Button>
         </ModalFooter>
@@ -182,11 +182,20 @@ function Plugins() {
           <Button
             startContent={<RiAddCircleLine />}
             color="primary"
+            variant="shadow"
+            size="sm"
             onPress={onOpenInstall}
+            className="shadow-sm hover:shadow-primary/30 click-scale"
           >
             安装新插件
           </Button>
-          <Button startContent={<RiRefreshLine />} onPress={handleRefresh}>
+          <Button
+            startContent={<RiRefreshLine />}
+            variant="shadow"
+            size="sm"
+            onPress={handleRefresh}
+            className="shadow-sm hover:shadow-primary/30 click-scale"
+          >
             刷新
           </Button>
         </div>
@@ -199,7 +208,12 @@ function Plugins() {
       />
 
       <div style={{ marginTop: 16, textAlign: "center" }}>
-        <Button variant="light" onPress={handleOpenPluginDir}>
+        <Button
+          variant="shadow"
+          size="sm"
+          onPress={handleOpenPluginDir}
+          className="hover:bg-default-100/50"
+        >
           打开插件目录
         </Button>
       </div>

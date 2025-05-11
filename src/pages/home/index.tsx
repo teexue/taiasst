@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { formatBytes, formatUptime } from "@/utils/formatters";
+import { formatBytes, formatUptime } from "@/utils/common/formatters";
 import { useSystemMonitor } from "@/utils/hooks/useSystemMonitor";
 import {
   Button,
@@ -79,7 +79,7 @@ const formatDate = (date: Date) => {
   return date.toLocaleDateString();
 };
 
-function Home() {
+const Home = React.memo(() => {
   const [intervals] = useState<number>(1);
   const { systemUsage, basicInfo, loading, err } = useSystemMonitor(
     intervals * 1000,
@@ -212,7 +212,7 @@ function Home() {
             <div className="flex justify-between items-center mb-1">
               <h5 className="text-xs font-medium text-foreground/80">各核心</h5>
               <Button
-                variant="light"
+                variant="shadow"
                 size="sm"
                 radius="full"
                 isIconOnly
@@ -618,7 +618,7 @@ function Home() {
               >
                 <Button
                   color="primary"
-                  radius="full"
+                  variant="shadow"
                   size="sm"
                   startContent={<RiChat1Line size={16} />}
                   className="click-scale hover-float shadow-sm hover:shadow-primary/30"
@@ -626,8 +626,7 @@ function Home() {
                   开始对话
                 </Button>
                 <Button
-                  variant="bordered"
-                  radius="full"
+                  variant="shadow"
                   size="sm"
                   startContent={<RiBookOpenLine size={16} />}
                   className="click-scale hover-float border-default-300/70 hover:bg-default-100/50"
@@ -704,9 +703,9 @@ function Home() {
           {recentChats.length > 3 && (
             <CardFooter className="justify-center border-t border-divider/30 p-2">
               <Button
-                variant="light"
-                color="primary"
+                variant="shadow"
                 size="sm"
+                color="primary"
                 endContent={<RiArrowRightSLine size={16} />}
                 className="hover:underline text-xs font-medium"
               >
@@ -774,7 +773,7 @@ function Home() {
           </div>
         )}
         {err && !basicInfo && (
-          <Card className="md:col-span-2 glass-danger">
+          <Card className="md:col-span-2 glass-light dark:glass-dark overflow-hidden shadow-sm">
             <CardBody className="text-center p-5">
               <p className="font-medium mb-1">系统监控加载失败</p>
               <p className="text-xs">错误: {err}</p>
@@ -784,6 +783,6 @@ function Home() {
       </div>
     </div>
   );
-}
+});
 
 export default Home;

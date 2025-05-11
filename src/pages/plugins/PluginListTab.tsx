@@ -150,7 +150,7 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
                 <Tooltip
                   content={plugin.name}
                   placement="top-start"
-                  delay={500}
+                  delay={300}
                 >
                   <h5 className="text-sm font-medium m-0 line-clamp-1">
                     {plugin.name}
@@ -201,7 +201,7 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
               <Tooltip
                 content={plugin.description || "暂无描述"}
                 placement="bottom-start"
-                delay={500}
+                delay={300}
               >
                 <p className="min-h-[2.5em] line-clamp-2">
                   {plugin.description || "暂无描述"}
@@ -213,7 +213,7 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
                 {plugin.author ? `作者: ${plugin.author}` : ""}
               </span>
               <div className="flex gap-1">
-                <Tooltip content="预览" placement="top">
+                <Tooltip content="预览" placement="top" delay={0}>
                   <Button
                     isIconOnly
                     size="sm"
@@ -248,17 +248,16 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
                       <span className="font-medium">{plugin.name}</span>" 吗？
                     </div>
                     <div className="flex justify-end gap-2 p-2 bg-default-100/50">
-                      <Button size="sm" variant="flat" radius="md">
-                        取消
-                      </Button>
                       <Button
                         size="sm"
+                        variant="flat"
                         color="danger"
-                        radius="md"
                         onPress={() => handleUninstall(plugin)}
-                        className="shadow-sm"
                       >
                         确定卸载
+                      </Button>
+                      <Button size="sm" variant="bordered" onPress={close}>
+                        取消
                       </Button>
                     </div>
                   </PopoverContent>

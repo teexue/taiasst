@@ -146,7 +146,7 @@ function LocalInstallTab({ onCancel, onSuccess }: LocalInstallTabProps) {
             </p>
             <Button
               size="sm"
-              variant="light"
+              variant="shadow"
               color="danger"
               isIconOnly
               radius="full"
@@ -172,7 +172,7 @@ function LocalInstallTab({ onCancel, onSuccess }: LocalInstallTabProps) {
             </p>
             <Button
               size="sm"
-              variant="bordered"
+              variant="shadow"
               radius="full"
               onPress={handleSelectFile}
               className="border-default-300/70 text-foreground/70 hover:border-primary hover:text-primary mt-2"
@@ -226,7 +226,8 @@ function LocalInstallTab({ onCancel, onSuccess }: LocalInstallTabProps) {
 
       <div className="flex justify-end items-center gap-2 mt-4">
         <Button
-          variant="flat"
+          variant="shadow"
+          size="sm"
           radius="md"
           onPress={handleCancel}
           disabled={isInstalling}
@@ -236,13 +237,15 @@ function LocalInstallTab({ onCancel, onSuccess }: LocalInstallTabProps) {
         {!installProgress && selectedFilePath && (
           <Button
             color="primary"
+            variant="shadow"
+            size="sm"
             radius="md"
             isLoading={uploadLoading}
             onPress={handleInstallUpload}
             disabled={
               isInstalling || installComplete || installFailed || uploadLoading
             }
-            className="shadow-sm"
+            className="shadow-sm hover:shadow-primary/30 click-scale"
           >
             开始安装
           </Button>
@@ -250,9 +253,11 @@ function LocalInstallTab({ onCancel, onSuccess }: LocalInstallTabProps) {
         {(installComplete || installFailed) && (
           <Button
             color="primary"
+            variant="shadow"
+            size="sm"
             radius="md"
             onPress={handleCancel}
-            className="shadow-sm"
+            className="shadow-sm hover:shadow-primary/30 click-scale"
           >
             {installComplete ? "完成" : "确定"}
           </Button>

@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from "@heroui/react";
 import { PluginMetadata, PluginTypeExtra, OriginExtra } from "@/types/plugin";
-import { getLoadedPlugins } from "@/utils/backend/plugin";
+import { getLoadedPlugins } from "@/services/tauri/plugin";
 import { useNavigate } from "react-router";
 import { RiToolsLine, RiInboxLine, RiComputerLine } from "@remixicon/react";
 import { motion } from "framer-motion";
@@ -120,7 +120,7 @@ function Tool() {
                   <Tooltip
                     content={plugin.name}
                     placement="top-start"
-                    delay={500}
+                    delay={300}
                   >
                     <h5 className="text-sm font-medium m-0 line-clamp-1">
                       {plugin.name}
@@ -153,7 +153,7 @@ function Tool() {
                 <Tooltip
                   content={plugin.description || "暂无描述"}
                   placement="bottom-start"
-                  delay={500}
+                  delay={300}
                 >
                   <p className="min-h-[2.5em] line-clamp-2">
                     {plugin.description || "暂无描述"}

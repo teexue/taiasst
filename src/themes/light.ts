@@ -6,7 +6,7 @@ export const lightTheme: ThemeConfig = {
   layout: {},
   colors: {
     background: {
-      DEFAULT: "#f8f9fc",
+      DEFAULT: "#e9e7f8",
       foreground: "#4a4a4a",
     },
     foreground: {
