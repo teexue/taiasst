@@ -1,4 +1,4 @@
-import backend from "@/utils/backend";
+import backend from "@/services";
 import { ConfigOptions, PluginMetadata } from "@/types/plugin";
 import { getPluginConfigFile } from "./config";
 import { error, warn } from "@tauri-apps/plugin-log";

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Card, CardBody, Spinner } from "@heroui/react";
-import { getPluginMetadata } from "@/utils/backend/plugin";
+import { getPluginMetadata } from "@/services/tauri/plugin";
 import { PluginMetadata } from "@/types/plugin";
 import PluginLoader from "@/components/PluginLoader";
 import { clearPluginGlobal, removePluginScript } from "@/utils/plugin";
@@ -106,7 +106,8 @@ function ToolDetail() {
         action={
           <Button
             radius="full"
-            variant="bordered"
+            variant="shadow"
+            size="sm"
             onPress={goBack}
             startContent={<RiArrowLeftLine size={16} />}
           >
@@ -128,7 +129,8 @@ function ToolDetail() {
         action={
           <Button
             radius="full"
-            variant="bordered"
+            variant="shadow"
+            size="sm"
             onPress={goBack}
             startContent={<RiArrowLeftLine size={16} />}
           >
@@ -145,7 +147,7 @@ function ToolDetail() {
       {/* Header with Back Button and Plugin Title */}
       <div className="flex items-center justify-between p-3 border-b border-divider/30 flex-shrink-0 mb-4">
         <Button
-          variant="light"
+          variant="shadow"
           size="sm"
           radius="full"
           onPress={goBack}
@@ -177,7 +179,8 @@ function ToolDetail() {
               action={
                 <Button
                   radius="full"
-                  variant="bordered"
+                  variant="shadow"
+                  size="sm"
                   onPress={goBack}
                   startContent={<RiArrowLeftLine size={16} />}
                 >

@@ -7,7 +7,7 @@ import {
   PluginType,
   PluginConfig,
 } from "@/types/plugin";
-import { execute, select } from "@/utils/db";
+import { execute, select } from "@/services/db";
 import { error } from "@tauri-apps/plugin-log";
 
 /**

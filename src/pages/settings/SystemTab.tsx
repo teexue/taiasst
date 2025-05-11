@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Switch,
   // RadioGroup, // Removed as ThemeCard is used
@@ -13,7 +13,12 @@ import { useTheme } from "@heroui/use-theme";
 import { themeNames, ThemeName, themes } from "../../themes";
 import { RiCheckLine } from "@remixicon/react"; // Icon for selected theme
 import { motion } from "framer-motion"; // For theme card animation
-
+import {
+  getAllSystemSettings,
+  saveAllSystemSettings,
+} from "../../services/db/system";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
+import { toast } from "sonner";
 // Define props type for SettingItem
 interface SettingItemProps {
   label: string;
@@ -125,41 +130,141 @@ function SystemTab() {
   const [minimizeToTray, setMinimizeToTray] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
   const [autoUpdate, setAutoUpdate] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { theme: currentTheme, setTheme } = useTheme();
 
-  // 修改这里：确保将 background 放入 theme.colors
-  const allThemeObjects: ThemeObject[] = (
-    Object.keys(themes) as ThemeName[]
-  ).map((themeId) => {
-    const config = themes[themeId]; // 获取配置对象
-    const primaryColor =
-      typeof config.colors?.primary === "object"
-        ? config.colors.primary.DEFAULT
-        : config.colors?.primary;
-    const secondaryColor =
-      typeof config.colors?.secondary === "object"
-        ? config.colors.secondary.DEFAULT
-        : config.colors?.secondary;
-    // 获取 background 颜色值
-    const backgroundColor =
-      typeof config.colors?.background === "object"
-        ? config.colors.background.DEFAULT
-        : config.colors?.background;
+  // 从数据库加载设置
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setIsLoading(true);
+        const settings = await getAllSystemSettings();
 
-    return {
-      id: themeId,
-      name: themeNames[themeId] || "未知主题",
-      colors: {
-        primary: primaryColor || "#cccccc",
-        secondary: secondaryColor || "#aaaaaa",
-        background:
-          backgroundColor ||
-          (themeId.startsWith("dark") ? "#1f1d2c" : "#f8f9fc"), // 添加 background 并提供 fallback
-      },
-      isDark: config.extend === "dark" || themeId.startsWith("dark"),
+        // 设置状态
+        setMinimizeToTray(settings.minimizeToTray);
+        setAutoStart(settings.autoStart);
+        setAutoUpdate(settings.autoUpdate);
+
+        // 如果数据库中存储的主题与当前不同，则更新主题
+        if (settings.currentTheme && settings.currentTheme !== currentTheme) {
+          setTheme(settings.currentTheme as ThemeName);
+        }
+      } catch (error) {
+        console.error("加载系统设置失败:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-  });
+
+    loadSettings();
+  }, [currentTheme, setTheme]);
+
+  // 当任何设置改变时保存到数据库
+  const saveSettings = async (settings: {
+    minimizeToTray?: boolean;
+    autoStart?: boolean;
+    autoUpdate?: boolean;
+    currentTheme?: string;
+  }) => {
+    try {
+      // 合并现有设置和新设置
+      const updatedSettings = {
+        minimizeToTray:
+          "minimizeToTray" in settings
+            ? settings.minimizeToTray!
+            : minimizeToTray,
+        autoStart: "autoStart" in settings ? settings.autoStart! : autoStart,
+        autoUpdate:
+          "autoUpdate" in settings ? settings.autoUpdate! : autoUpdate,
+        currentTheme: settings.currentTheme || currentTheme,
+      };
+
+      // 保存到数据库
+      await saveAllSystemSettings(updatedSettings);
+
+      // 更新状态
+      if ("minimizeToTray" in settings)
+        setMinimizeToTray(settings.minimizeToTray!);
+      if ("autoStart" in settings) setAutoStart(settings.autoStart!);
+      if ("autoUpdate" in settings) setAutoUpdate(settings.autoUpdate!);
+      if (settings.currentTheme) setTheme(settings.currentTheme as ThemeName);
+    } catch (error) {
+      console.error("保存系统设置失败:", error);
+    }
+  };
+
+  // 更新最小化到托盘设置
+  const handleMinimizeToTrayChange = async (value: boolean) => {
+    saveSettings({ minimizeToTray: value });
+    toast.success("最小化到托盘设置已保存");
+  };
+
+  // 更新开机自启动设置
+  const handleAutoStartChange = async (value: boolean) => {
+    if (value) {
+      await enable();
+      if (await isEnabled()) {
+        saveSettings({ autoStart: value });
+        toast.success("开机自启动已启用");
+      } else {
+        toast.error("开机自启动启用失败");
+      }
+    } else {
+      await disable();
+      if (!(await isEnabled())) {
+        saveSettings({ autoStart: value });
+        toast.success("开机自启动已禁用");
+      } else {
+        toast.error("开机自启动禁用失败");
+      }
+    }
+  };
+
+  // 更新自动更新设置
+  const handleAutoUpdateChange = (value: boolean) => {
+    saveSettings({ autoUpdate: value });
+    toast.success("自动更新设置已保存");
+  };
+
+  // 更新主题设置
+  const handleThemeChange = (newTheme: ThemeName) => {
+    saveSettings({ currentTheme: newTheme });
+    toast.success("主题设置已保存");
+  };
+
+  // 修改这里：确保将 background 放入 theme.colors
+  const allThemeObjects = (Object.keys(themes) as ThemeName[]).map(
+    (themeId) => {
+      const config = themes[themeId]; // 获取配置对象
+      const primaryColor =
+        typeof config.colors?.primary === "object"
+          ? config.colors.primary.DEFAULT
+          : config.colors?.primary;
+      const secondaryColor =
+        typeof config.colors?.secondary === "object"
+          ? config.colors.secondary.DEFAULT
+          : config.colors?.secondary;
+      // 获取 background 颜色值
+      const backgroundColor =
+        typeof config.colors?.background === "object"
+          ? config.colors.background.DEFAULT
+          : config.colors?.background;
+
+      return {
+        id: themeId,
+        name: themeNames[themeId] || "未知主题",
+        colors: {
+          primary: primaryColor || "#cccccc",
+          secondary: secondaryColor || "#aaaaaa",
+          background:
+            backgroundColor ||
+            (themeId.startsWith("dark") ? "#1f1d2c" : "#f8f9fc"), // 添加 background 并提供 fallback
+        },
+        isDark: config.extend === "dark" || themeId.startsWith("dark"),
+      };
+    },
+  );
 
   const lightThemes = allThemeObjects.filter((t) => !t.isDark);
   const darkThemes = allThemeObjects.filter((t) => t.isDark);
@@ -172,6 +277,12 @@ function SystemTab() {
       wrapper: "group-data-[selected=true]:bg-primary", // Correct class for selected state
     },
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">加载中...</div>
+    );
+  }
 
   return (
     // Use space-y for vertical spacing between cards
@@ -190,7 +301,7 @@ function SystemTab() {
                 <Switch
                   {...switchProps}
                   isSelected={minimizeToTray}
-                  onValueChange={setMinimizeToTray}
+                  onValueChange={handleMinimizeToTrayChange}
                   aria-label="最小化到托盘"
                 />
               }
@@ -202,7 +313,7 @@ function SystemTab() {
                 <Switch
                   {...switchProps}
                   isSelected={autoStart}
-                  onValueChange={setAutoStart}
+                  onValueChange={handleAutoStartChange}
                   aria-label="开机自启动"
                 />
               }
@@ -214,7 +325,7 @@ function SystemTab() {
                 <Switch
                   {...switchProps}
                   isSelected={autoUpdate}
-                  onValueChange={setAutoUpdate}
+                  onValueChange={handleAutoUpdateChange}
                   aria-label="自动更新"
                 />
               }
@@ -238,7 +349,7 @@ function SystemTab() {
                   key={theme.id}
                   theme={theme}
                   isActive={currentTheme === theme.id}
-                  onSelect={() => setTheme(theme.id)}
+                  onSelect={() => handleThemeChange(theme.id)}
                 />
               ))}
             </div>
@@ -253,7 +364,7 @@ function SystemTab() {
                   key={theme.id}
                   theme={theme}
                   isActive={currentTheme === theme.id}
-                  onSelect={() => setTheme(theme.id)}
+                  onSelect={() => handleThemeChange(theme.id)}
                 />
               ))}
             </div>

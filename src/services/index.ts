@@ -1,13 +1,12 @@
-import * as systemFunctions from "./system";
-import * as httpFunctions from "./http";
-import * as fileFunctions from "./file";
-import * as pluginFunctions from "./plugin";
+import * as systemFunctions from "./tauri/system";
+import * as httpFunctions from "../utils/backend/http";
+import * as fileFunctions from "./tauri/fs";
+import * as pluginFunctions from "./tauri/plugin";
 
 // 导出所有根据Rust后端代码定义的类型
-export * from "./system";
-export * from "./http";
-export * from "./file";
-export * from "./plugin";
+export * from "./tauri/system";
+export * from "./tauri/fs";
+export * from "./tauri/plugin";
 
 // 系统信息相关接口
 export const system = {

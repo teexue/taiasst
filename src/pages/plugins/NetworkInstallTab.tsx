@@ -105,24 +105,33 @@ function NetworkInstallTab({ onCancel, onSuccess }: NetworkInstallTabProps) {
       animate={{ opacity: 1 }}
       className="flex flex-col gap-4"
     >
-      <Input
-        label="插件 URL"
-        placeholder="https://.../plugin.zip"
-        value={pluginUrl}
-        onValueChange={(value) => {
-          setPluginUrl(value);
-          if (urlError) setUrlError(null);
-        }}
-        isRequired
-        isClearable
-        errorMessage={urlError}
-        isInvalid={!!urlError}
-        description="输入插件的 .zip 包下载链接 (例如从 GitHub Releases 获取)"
-        variant="bordered"
-        radius="lg"
-        isDisabled={isWorking || isFinished}
-        classNames={{ inputWrapper: "bg-background/70 dark:bg-default-100/50" }}
-      />
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">插件 URL</label>
+        <Input
+          placeholder="https://.../plugin.zip"
+          value={pluginUrl}
+          onValueChange={(value) => {
+            setPluginUrl(value);
+            if (urlError) setUrlError(null);
+          }}
+          isRequired
+          isClearable
+          errorMessage={urlError}
+          isInvalid={!!urlError}
+          variant="bordered"
+          radius="md"
+          isDisabled={isWorking || isFinished}
+          classNames={{
+            inputWrapper:
+              "bg-background/80 dark:bg-default-100/50 border-default-300/50 dark:border-default-200/30 group-data-[focus=true]:border-primary h-10",
+            input: "py-2 text-sm",
+            errorMessage: "text-xs text-danger",
+          }}
+        />
+        <p className="text-xs text-foreground/60 mt-1">
+          输入插件的 .zip 包下载链接 (例如从 GitHub Releases 获取)
+        </p>
+      </div>
 
       {/* Example Link (Optional) */}
       {/* <div className="flex items-center gap-1 text-xs">
@@ -182,7 +191,8 @@ function NetworkInstallTab({ onCancel, onSuccess }: NetworkInstallTabProps) {
       {/* Action Buttons */}
       <div className="flex justify-end items-center gap-2 mt-4">
         <Button
-          variant="flat"
+          variant="shadow"
+          size="sm"
           radius="md"
           onPress={handleCancel}
           // disabled={isWorking} // Allow cancel anytime maybe?
@@ -191,11 +201,13 @@ function NetworkInstallTab({ onCancel, onSuccess }: NetworkInstallTabProps) {
         </Button>
         <Button
           color="primary"
+          variant="shadow"
+          size="sm"
           radius="md"
           isLoading={isWorking}
           onPress={handleNetworkInstall}
           isDisabled={!pluginUrl || !!urlError || isWorking || isFinished}
-          className="shadow-sm"
+          className="shadow-sm hover:shadow-primary/30 click-scale"
         >
           {isWorking
             ? progressData?.stage === "downloading"

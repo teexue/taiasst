@@ -1,8 +1,8 @@
 import { message, MessageDialogOptions } from "@tauri-apps/plugin-dialog";
-import backend from "@/utils/backend";
+import backend from "@/services";
 import { error } from "@tauri-apps/plugin-log";
 import { PluginConfig, PluginMetadata, Origin } from "@/types/plugin";
-import * as pluginDb from "@/utils/db/plugin";
+import * as pluginDb from "@/services/db/plugin";
 
 /**
  * 获取插件默认配置

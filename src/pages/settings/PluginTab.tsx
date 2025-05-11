@@ -163,6 +163,16 @@ function PluginConfigForm({ plugin }: { plugin: PluginMetadata }) {
                 }
                 disallowEmptySelection={option.required}
                 description={option.description}
+                variant="bordered"
+                radius="md"
+                labelPlacement="outside-left"
+                classNames={{
+                  trigger:
+                    "bg-background/80 dark:bg-default-100/50 border-default-300/50 dark:border-default-200/30 h-10 min-h-10",
+                  value: "text-sm",
+                  label: "font-medium text-foreground/90",
+                  description: "text-xs text-foreground/60",
+                }}
               >
                 {option.options.map((opt) => (
                   <SelectItem key={opt}>{opt}</SelectItem>
@@ -176,6 +186,17 @@ function PluginConfigForm({ plugin }: { plugin: PluginMetadata }) {
                 onValueChange={(value) => handleValueChange(option.name, value)}
                 isRequired={option.required}
                 description={option.description}
+                variant="bordered"
+                radius="md"
+                labelPlacement="outside-left"
+                classNames={{
+                  inputWrapper:
+                    "bg-background/80 dark:bg-default-100/50 border-default-300/50 dark:border-default-200/30 group-data-[focus=true]:border-primary",
+                  input: "py-2 text-sm",
+                  description: "text-xs text-foreground/60",
+                  errorMessage: "text-xs text-danger",
+                  label: "font-medium text-foreground/90",
+                }}
               />
             )}
           </div>
@@ -212,9 +233,19 @@ function PluginTab() {
         color="primary"
         variant="underlined"
         className="h-full"
+        classNames={{
+          panel: "p-0",
+        }}
       >
         {(item) => (
-          <Tab key={item.id} title={item.name}>
+          <Tab
+            key={item.id}
+            title={
+              <span className="flex items-center gap-1.5 text-sm">
+                {item.name}
+              </span>
+            }
+          >
             <div className="p-4 max-w-xl mx-auto">
               <PluginConfigForm plugin={item} />
             </div>

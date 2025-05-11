@@ -4,6 +4,7 @@ import AboutTab from "./AboutTab";
 import SystemTab from "./SystemTab";
 import PluginTab from "./PluginTab";
 import SystemTools from "./SystemTools";
+import AiTab from "./AiTab";
 
 function Settings() {
   return (
@@ -12,11 +13,16 @@ function Settings() {
       defaultSelectedKey="system"
       color="primary"
       variant="underlined"
+      classNames={{
+        tabList: "px-4",
+        panel: "p-0 pt-4",
+      }}
+      fullWidth
     >
       <Tab
         key="system"
         title={
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5 text-sm">
             <RemixIcons.RiComputerLine size={16} />
             <span>系统设置</span>
           </span>
@@ -25,9 +31,20 @@ function Settings() {
         <SystemTab />
       </Tab>
       <Tab
+        key="ai"
+        title={
+          <span className="flex items-center gap-1.5 text-sm">
+            <RemixIcons.RiRobot2Line size={16} />
+            <span>AI 设置</span>
+          </span>
+        }
+      >
+        <AiTab />
+      </Tab>
+      <Tab
         key="plugin"
         title={
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5 text-sm">
             <RemixIcons.RiPlugLine size={16} />
             <span>插件设置</span>
           </span>
@@ -38,7 +55,7 @@ function Settings() {
       <Tab
         key="system-tools"
         title={
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5 text-sm">
             <RemixIcons.RiToolsLine size={16} />
             <span>系统工具</span>
           </span>
@@ -49,7 +66,7 @@ function Settings() {
       <Tab
         key="about"
         title={
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5 text-sm">
             <RemixIcons.RiInformationLine size={16} />
             <span>关于</span>
           </span>
