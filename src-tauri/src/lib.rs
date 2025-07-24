@@ -1,3 +1,5 @@
+use db::DBConnection;
+use std::sync::Arc;
 /**
  * TaiASST 应用后端库
  *
@@ -16,6 +18,7 @@ use tauri::{
     Manager,
 };
 use tauri_plugin_autostart::MacosLauncher;
+use tokio::sync::Mutex;
 
 // 导入模块
 mod db;
@@ -23,6 +26,43 @@ mod file;
 mod http;
 mod plugin;
 mod system;
+
+// 全局数据库连接
+static DB_CONNECTION: std::sync::OnceLock<Arc<Mutex<DBConnection>>> = std::sync::OnceLock::new();
+
+/// 获取全局数据库连接
+pub async fn get_db() -> Result<Arc<Mutex<DBConnection>>, String> {
+    DB_CONNECTION
+        .get()
+        .ok_or_else(|| "数据库未初始化".to_string())
+        .map(|db| db.clone())
+}
+
+/// 初始化数据库连接
+async fn init_database(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    // 获取应用数据目录
+    let app_data_dir = app.path().app_data_dir()?;
+
+    // 确保应用数据目录存在
+    std::fs::create_dir_all(&app_data_dir)?;
+
+    // 构建数据库文件路径
+    let db_path = app_data_dir.join(db::DB_NAME);
+    let db_url = format!("sqlite:{}", db_path.to_string_lossy());
+
+    // 创建数据库连接 (会自动创建文件并初始化表结构)
+    let db_connection = DBConnection::new(db_url)
+        .await
+        .map_err(|e| format!("数据库初始化失败: {}", e))?;
+
+    // 设置全局数据库连接
+    DB_CONNECTION
+        .set(Arc::new(Mutex::new(db_connection)))
+        .map_err(|_| "数据库连接已初始化")?;
+
+    log::info!("数据库初始化成功: {:?}", db_path);
+    Ok(())
+}
 
 //==============================================================================
 // 应用界面相关函数
@@ -39,6 +79,17 @@ fn show_window(app: &AppHandle) {
         .expect("Sorry, no window found")
         .set_focus()
         .expect("Can't Bring Window to Focus");
+}
+
+#[tauri::command]
+fn show_window_command(window: tauri::Window) -> Result<(), String> {
+    window
+        .show()
+        .map_err(|e| format!("Failed to show window: {}", e))?;
+    window
+        .set_focus()
+        .map_err(|e| format!("Failed to set focus: {}", e))?;
+    Ok(())
 }
 
 /**
@@ -149,6 +200,7 @@ fn init_plugins(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wr
  */
 fn init_functions(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
     builder.invoke_handler(tauri::generate_handler![
+        show_window_command,
         // 文件操作相关命令
         file::create_directory,
         file::delete_file,
@@ -183,6 +235,7 @@ fn init_functions(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::
         http::http_post,
         http::http_put,
         http::http_delete,
+        // 安全系统相关命令已清理
     ])
 }
 
@@ -203,6 +256,16 @@ pub fn run() {
         .setup(|app| {
             // 设置界面
             let _ = setup(app);
+
+            // 初始化数据库
+            tauri::async_runtime::block_on(async {
+                if let Err(e) = init_database(app).await {
+                    log::error!("数据库初始化失败: {}", e);
+                    return Err(e);
+                }
+                Ok(())
+            })?;
+
             // 初始化插件管理器
             match plugin::api::init_plugin_system(app.app_handle().clone()) {
                 Ok(_) => log::info!("插件管理器初始化成功"),

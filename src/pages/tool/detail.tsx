@@ -10,7 +10,7 @@ import {
   RiCloseCircleLine,
   RiErrorWarningLine,
   RiFileWarningLine,
-} from "@remixicon/react";
+} from "react-icons/ri";
 import { motion } from "framer-motion";
 
 const StatusCard: React.FC<{

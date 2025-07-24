@@ -1,1136 +1,540 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Button, Textarea, Spinner, Tooltip } from "@heroui/react";
+import { useNavigate } from "react-router";
 import {
-  Textarea,
-  Button,
-  Avatar,
-  ScrollShadow,
-  Tooltip,
-  Select,
-  SelectItem,
-  SelectSection,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-  Input,
-  Switch,
-} from "@heroui/react";
-import {
-  RiSendPlane2Fill,
   RiRobot2Line,
-  RiUserLine,
-  RiSparklingLine,
+  RiSendPlaneLine,
+  RiSettings4Line,
   RiDeleteBinLine,
-  RiSettings3Line,
-  RiMistLine,
+  RiFileCopyLine,
+  RiUser3Line,
+  RiStopCircleLine,
   RiHistoryLine,
-  RiSaveLine,
-  RiFolderAddLine,
-  RiMessageLine,
-} from "@remixicon/react";
-import Markdown from "react-markdown"; // For rendering AI responses
-import remarkGfm from "remark-gfm"; // GitHub Flavored Markdown
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"; // Code highlighting
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"; // Code style
-import { useNavigate } from "react-router"; // 导入用于导航的hook
+  RiAddLine,
+} from "react-icons/ri";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { AIProvider, ChatSession } from "@/services/ai/types";
+import { getAIManager } from "@/services/ai/manager";
+import { copyToClipboard } from "@/utils/password";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
+import ChatHistory from "@/components/ChatHistory";
 
-// 导入AI聊天服务
-import {
-  getAiResponseStream,
-  createChatMessage,
-  ChatMessage,
-  ChatError,
-} from "@/services/ai/chat";
-import {
-  AiConfig,
-  ModelDefinition,
-  loadConfiguredModels, // 新增: 加载已配置的模型
-  getFrontendAiConfig, // 用于加载上次选择等UI偏好
-  saveFrontendAiConfig, // 用于保存上次选择等UI偏好
-  getBackendAiConfig, // 用于加载温度等核心配置
-} from "@/services/ai/api";
-import {
-  ChatHistory,
-  saveChatHistory,
-  getAllChatHistories,
-  getChatHistory,
-  deleteChatHistory,
-  generateChatSummary,
-} from "@/services/db/chatHistory";
-
-// 为UI显示聊天历史预览
-interface ChatHistoryPreview {
+// 聊天消息接口（用于UI显示）
+interface ChatMessage {
   id: string;
-  title: string;
-  summary?: string;
-  provider?: string;
-  model?: string;
-  updatedAt: number;
+  text: string;
+  sender: "user" | "ai";
+  timestamp: Date;
 }
 
-// 消息项组件，避免整个列表重新渲染
-const MessageItem = React.memo(
-  ({
-    message,
-    isStreaming,
-    isCurrentStreamingMessage,
-  }: {
-    message: ChatMessage;
-    isStreaming: boolean;
-    isCurrentStreamingMessage: boolean;
-  }) => {
-    // Custom Code component for react-markdown with types
-    const CodeBlock: React.FC<{
-      node?: any;
-      inline?: boolean;
-      className?: string;
-      children?: React.ReactNode;
-    }> = ({ node, inline, className, children, ...props }) => {
-      const match = /language-(\w+)/.exec(className || "");
-      return !inline && match ? (
-        <div className="relative my-2">
-          <SyntaxHighlighter
-            style={vscDarkPlus}
-            language={match[1]}
-            PreTag="div"
-            className="rounded-md !bg-[#1e1e1e] overflow-auto scrollbar-thin scrollbar-thumb-default-300 scrollbar-track-transparent"
-            {...props}
-          >
-            {String(children)}
-          </SyntaxHighlighter>
-        </div>
-      ) : (
-        <code className={className} {...props}>
-          {children}
-        </code>
-      );
-    };
+// 聊天状态
+type ChatState = "idle" | "streaming" | "error";
 
-    // 确保消息文本一定是字符串
-    const displayText = message.text || "";
+// 创建聊天消息
+const createChatMessage = (
+  text: string,
+  sender: "user" | "ai",
+): ChatMessage => ({
+  id: crypto.randomUUID(),
+  text,
+  sender,
+  timestamp: new Date(),
+});
 
-    // 将流式光标直接附加到displayText
-    let fullDisplayText = displayText;
-    if (
-      message.sender === "ai" &&
-      isStreaming &&
-      isCurrentStreamingMessage &&
-      displayText !== "正在思考..."
-    ) {
-      fullDisplayText += "▌"; // 直接追加光标字符
-    }
+// 消息气泡组件
+interface MessageBubbleProps {
+  message: ChatMessage;
+  onCopy: () => void;
+  isStreaming?: boolean;
+}
 
-    return (
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  onCopy,
+  isStreaming,
+}) => {
+  const isUser = message.sender === "user";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`flex ${isUser ? "justify-end" : "justify-start"} w-full`}
+    >
       <div
-        className={`flex items-end gap-2 mb-4 ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+        className={`flex gap-3 max-w-[85%] ${isUser ? "flex-row-reverse" : "flex-row"}`}
       >
-        {message.sender === "ai" && (
-          <Avatar
-            icon={<RiRobot2Line size={20} />}
-            size="sm"
-            radius="full"
-            className={`mb-1 bg-gradient-to-br from-secondary to-primary text-white ${
-              isStreaming && isCurrentStreamingMessage ? "animate-pulse" : ""
-            }`}
-          />
-        )}
+        {/* 头像 */}
         <div
-          className={`max-w-[75%] p-2.5 rounded-xl shadow-sm prose prose-sm dark:prose-invert prose-p:my-1 prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1 ${
-            message.sender === "user"
-              ? "bg-primary text-primary-foreground rounded-br-none"
-              : "bg-content1 dark:bg-content2 text-foreground rounded-bl-none glass-light dark:glass-dark border border-divider/10"
+          className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+            isUser
+              ? "bg-primary text-white"
+              : "bg-gradient-to-br from-secondary to-primary text-white"
           }`}
         >
-          {/* Render Markdown for AI messages */}
-          {message.sender === "ai" ? (
-            <div className="message-content">
-              {" "}
-              {/* 添加一个容器便于调试 */}
-              {displayText === "正在思考..." && isCurrentStreamingMessage ? (
-                <div className="typing-indicator">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              ) : (
-                <Markdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code: CodeBlock,
-                  }}
-                >
-                  {fullDisplayText}
-                </Markdown>
-              )}
-            </div>
+          {isUser ? (
+            <RiUser3Line className="w-3.5 h-3.5" />
           ) : (
-            <span className="whitespace-pre-wrap break-words">
-              {displayText}
-            </span>
+            <RiRobot2Line className="w-3.5 h-3.5" />
           )}
         </div>
-        {message.sender === "user" && (
-          <Avatar
-            icon={<RiUserLine size={18} />}
-            size="sm"
-            radius="full"
-            className="mb-1 bg-default-200 dark:bg-default-300 text-default-600"
-          />
-        )}
-      </div>
-    );
-  },
-  (prevProps, nextProps) => {
-    // 只有当消息文本变化或者流状态变化时才更新
-    return (
-      prevProps.message.text === nextProps.message.text &&
-      prevProps.isStreaming === nextProps.isStreaming &&
-      prevProps.isCurrentStreamingMessage ===
-        nextProps.isCurrentStreamingMessage
-    );
-  },
-);
 
-MessageItem.displayName = "MessageItem";
+        {/* 消息内容 */}
+        <div
+          className={`relative group ${isUser ? "text-right" : "text-left"} min-w-0 flex-1`}
+        >
+          <div
+            className={`inline-block p-3 rounded-2xl max-w-full ${
+              isUser
+                ? "bg-primary text-white rounded-br-md"
+                : "bg-default-100 text-foreground rounded-bl-md"
+            }`}
+          >
+            {isUser ? (
+              <div className="whitespace-pre-wrap break-words text-sm">
+                {message.text}
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none [&>*]:my-2 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                <MarkdownRenderer content={message.text} />
+                {isStreaming && (
+                  <span className="inline-block w-2 h-4 bg-current ml-1 animate-pulse" />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 操作按钮 */}
+          <div
+            className={`absolute top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 ${
+              isUser ? "-left-8" : "-right-8"
+            }`}
+          >
+            <Tooltip content="复制">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                className="bg-background/80 backdrop-blur-sm shadow-sm"
+                onPress={onCopy}
+              >
+                <RiFileCopyLine className="w-3 h-3" />
+              </Button>
+            </Tooltip>
+          </div>
+
+          {/* 时间戳 */}
+          <div
+            className={`text-xs text-foreground/40 mt-1 ${isUser ? "text-right" : "text-left"}`}
+          >
+            {message.timestamp.toLocaleTimeString()}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 function AiApp() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    // Initial welcome message
-    {
-      id: "welcome",
-      text: "你好！我是 TaiASST，你的 AI 助手。有什么可以帮你的吗？",
-      sender: "ai",
-      timestamp: new Date(),
-    },
-  ]);
-  const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [chatState, setChatState] = useState<ChatState>("idle");
+  const [currentResponse, setCurrentResponse] = useState("");
+  const [currentSession, setCurrentSession] = useState<ChatSession | null>(
     null,
   );
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider | null>(
+    null,
+  );
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [hasConfiguredProviders, setHasConfiguredProviders] = useState(false);
 
-  // AI 配置状态
-  const [currentAiConfig, setCurrentAiConfig] = useState<Partial<AiConfig>>({});
-  const [availableModels, setAvailableModels] = useState<ModelDefinition[]>([]); // 初始为空数组
-  const [isInitializing, setIsInitializing] = useState(true); // 添加初始化状态
-
-  // 聊天历史管理
-  const [chatHistories, setChatHistories] = useState<ChatHistoryPreview[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [isLoadingHistories, setIsLoadingHistories] = useState(false);
-  const {
-    isOpen: isSaveModalOpen,
-    onOpen: onOpenSaveModal,
-    onClose: onCloseSaveModal,
-  } = useDisclosure();
-  const [chatTitle, setChatTitle] = useState("");
-
-  // 自动保存设置 - 直接从localStorage读取初始值
-  const [autoSaveEnabled, setAutoSaveEnabled] = useState<boolean>(() => {
-    // 从localStorage读取初始值
-    const savedValue = localStorage.getItem("autoSaveChat");
-    return savedValue === "true"; // 如果找不到或者值为'false'，则返回false
-  });
-  const [autoSaveThreshold] = useState<number>(3); // 触发自动保存的消息数阈值
-
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const aiManager = getAIManager();
   const navigate = useNavigate();
 
-  // 加载AI配置 (包括上次选择的模型、温度等)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 自动滚动到底部
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
   useEffect(() => {
-    const loadConfig = async () => {
-      setIsInitializing(true);
+    scrollToBottom();
+  }, [messages, currentResponse, scrollToBottom]);
+
+  // 检查配置状态
+  const checkConfigurationStatus = useCallback(async () => {
+    try {
+      const configs = await aiManager.getAllProviderConfigs();
+      const hasEnabled = configs.some(
+        (config) => config.enabled && config.apiKey,
+      );
+      setHasConfiguredProviders(hasEnabled);
+      return hasEnabled;
+    } catch (error) {
+      console.error("检查AI配置状态失败:", error);
+      return false;
+    }
+  }, [aiManager]);
+
+  // 初始化
+  useEffect(() => {
+    const initializeAI = async () => {
       try {
-        // 1. 加载已配置的模型列表 (从数据库)
-        const configuredModels = await loadConfiguredModels();
-        setAvailableModels(configuredModels);
+        const defaultProvider = await aiManager.getDefaultProvider();
+        setSelectedProvider(defaultProvider);
 
-        // 2. 获取前端UI配置 (从localStorage)
-        const frontendConfig = getFrontendAiConfig();
-
-        // 不再在这里设置autoSaveEnabled，因为它已经在useState中初始化
-
-        // 3. 获取后端核心配置 (目前从前端兼容，未来从Tauri后端获取)
-        const backendConfig = await getBackendAiConfig();
-
-        // 4. 合并配置
-        const combinedConfig: Partial<AiConfig> = {
-          ...backendConfig, // 后端配置优先 (如 temperature, maxTokens)
-          ...frontendConfig, // 前端选择优先 (如 provider, model)
-        };
-
-        // 5. 如果没有保存的模型信息或选择的模型已不可用，设置一个默认值
-        const hasValidModel =
-          combinedConfig.provider &&
-          combinedConfig.model &&
-          configuredModels.some(
-            (m) =>
-              m.provider === combinedConfig.provider &&
-              m.nativeModelId === combinedConfig.model,
-          );
-
-        if (!hasValidModel) {
-          // 优先选择已配置的模型
-          const configuredModel = configuredModels.find(
-            (m) => m.configured === true,
-          );
-          if (configuredModel) {
-            combinedConfig.provider = configuredModel.provider;
-            combinedConfig.model = configuredModel.nativeModelId;
-          } else if (configuredModels.length > 0) {
-            // 如果没有已配置的模型，使用列表中第一个
-            combinedConfig.provider = configuredModels[0].provider;
-            combinedConfig.model = configuredModels[0].nativeModelId;
-          }
-          // 如果没有任何可用模型，保持为undefined
-        }
-
-        setCurrentAiConfig(combinedConfig);
+        // 检查是否有已配置的提供商
+        await checkConfigurationStatus();
       } catch (error) {
-        console.error("加载AI配置失败:", error);
-      } finally {
-        setIsInitializing(false);
+        console.error("初始化AI配置失败:", error);
       }
     };
 
-    loadConfig();
+    initializeAI();
+  }, [checkConfigurationStatus]);
 
-    // 加载聊天历史列表
-    loadChatHistories();
-  }, []); // 只在组件挂载时加载一次
-
-  // 保存自动保存设置到localStorage - 只在用户手动修改设置时保存
+  // 监听页面焦点，当用户从设置页面返回时重新检查配置
   useEffect(() => {
-    localStorage.setItem("autoSaveChat", autoSaveEnabled.toString());
-    // 注意：此效果只在用户通过界面上的开关按钮更改autoSaveEnabled的值时触发
-    // 由于useState初始化时从localStorage直接读取了值，所以组件挂载时不会触发多余的写入
-  }, [autoSaveEnabled]);
+    const handleFocus = () => {
+      checkConfigurationStatus();
+    };
 
-  // 加载聊天历史列表
-  const loadChatHistories = async () => {
-    try {
-      setIsLoadingHistories(true);
-      const histories = await getAllChatHistories();
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [checkConfigurationStatus]);
 
-      // 转换为预览格式
-      const previews: ChatHistoryPreview[] = histories.map((history) => ({
-        id: history.id,
-        title: history.title,
-        summary: history.summary,
-        provider: history.provider,
-        model: history.model,
-        updatedAt: history.updatedAt,
-      }));
+  // 发送消息
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || chatState === "streaming") return;
 
-      setChatHistories(previews);
-    } catch (error) {
-      console.error("加载聊天历史失败:", error);
-    } finally {
-      setIsLoadingHistories(false);
-    }
-  };
-
-  // 自动保存当前对话
-  const autoSaveChat = useCallback(async () => {
-    try {
-      // 至少要有一条用户消息和一条AI回复
-      const hasUserMessage = messages.some((msg) => msg.sender === "user");
-      const hasAiMessage = messages.some(
-        (msg) => msg.sender === "ai" && msg.text !== "正在思考...",
-      );
-
-      if (!hasUserMessage || !hasAiMessage) {
-        return;
-      }
-
-      // 转换为API消息格式
-      const apiMessages = messages.map((msg) => ({
-        role: msg.sender === "ai" ? ("assistant" as const) : ("user" as const),
-        content: msg.text,
-      }));
-
-      // 生成ID（如果是新聊天）或使用现有ID
-      const chatId = currentChatId || `chat_${Date.now()}`;
-
-      // 根据当前日期时间和第一条用户消息生成默认标题
-      const dateStr = new Date().toLocaleDateString("zh-CN", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      const userMessages = messages.filter((msg) => msg.sender === "user");
-      let defaultTitle = `对话 ${dateStr}`;
-
-      if (userMessages.length > 0) {
-        const firstMsgPreview =
-          userMessages[0].text.length > 15
-            ? userMessages[0].text.substring(0, 12) + "..."
-            : userMessages[0].text;
-        defaultTitle = `${firstMsgPreview} - ${dateStr}`;
-      }
-
-      // 使用当前配置的模型
-      const history: ChatHistory = {
-        id: chatId,
-        title: defaultTitle,
-        provider: currentAiConfig.provider,
-        model: currentAiConfig.model,
-        messages: apiMessages,
-        summary: generateChatSummary(apiMessages),
-        createdAt: Math.floor(Date.now() / 1000),
-        updatedAt: Math.floor(Date.now() / 1000),
-      };
-
-      // 保存到数据库
-      await saveChatHistory(history);
-
-      // 更新当前聊天ID和历史列表
-      setCurrentChatId(chatId);
-      await loadChatHistories();
-    } catch (error) {
-      console.error("自动保存聊天历史失败:", error);
-    }
-  }, [messages, currentChatId, currentAiConfig]);
-
-  // 监听消息变化，触发自动保存
-  useEffect(() => {
-    // 仅当启用自动保存且未设置currentChatId(新对话)且有足够的消息时执行
-    const userMessages = messages.filter((msg) => msg.sender === "user");
-    const aiMessages = messages.filter(
-      (msg) => msg.sender === "ai" && msg.text !== "正在思考...",
-    );
-
-    if (
-      autoSaveEnabled &&
-      !currentChatId &&
-      userMessages.length >= 1 &&
-      aiMessages.length >= Math.min(2, autoSaveThreshold) &&
-      !isStreaming // 确保不在流式响应中
-    ) {
-      // 自动保存对话
-      autoSaveChat();
-    }
-  }, [
-    messages,
-    isStreaming,
-    autoSaveEnabled,
-    autoSaveThreshold,
-    currentChatId,
-    autoSaveChat,
-  ]);
-
-  // 加载特定的聊天历史
-  const loadChatHistory = async (chatId: string) => {
-    try {
-      setIsLoading(true);
-      const history = await getChatHistory(chatId);
-      if (!history) {
-        console.error(`未找到聊天历史: ${chatId}`);
-        return;
-      }
-
-      // 转换消息格式
-      const chatMessages: ChatMessage[] = history.messages.map((msg) => {
-        return {
-          id: crypto.randomUUID(), // 为每条消息生成新ID
-          text: msg.content,
-          sender: msg.role === "assistant" ? "ai" : "user",
-          timestamp: new Date(history.createdAt * 1000),
-        };
-      });
-
-      // 设置当前聊天记录
-      setMessages(chatMessages);
-      setCurrentChatId(chatId);
-
-      // 如果有提供商和模型信息，更新当前AI配置
-      if (history.provider && history.model) {
-        setCurrentAiConfig((prev) => ({
-          ...prev,
-          provider: history.provider,
-          model: history.model,
-        }));
-      }
-    } catch (error) {
-      console.error("加载聊天历史失败:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 创建新的聊天
-  const createNewChat = () => {
-    setMessages([
-      {
-        id: "welcome",
-        text: "你好！我是 TaiASST，你的 AI 助手。有什么可以帮你的吗？",
-        sender: "ai",
-        timestamp: new Date(),
-      },
-    ]);
-    setCurrentChatId(null);
-  };
-
-  // 保存当前聊天记录
-  const saveCurrentChat = async () => {
-    try {
-      // 至少要有一条用户消息和一条AI回复
-      const hasUserMessage = messages.some((msg) => msg.sender === "user");
-      const hasAiMessage = messages.some((msg) => msg.sender === "ai");
-
-      if (!hasUserMessage || !hasAiMessage) {
-        console.warn("聊天记录至少需要包含一条用户消息和一条AI回复");
-        return;
-      }
-
-      // 转换为API消息格式
-      const apiMessages = messages.map((msg) => ({
-        role: msg.sender === "ai" ? ("assistant" as const) : ("user" as const),
-        content: msg.text,
-      }));
-
-      // 生成ID（如果是新聊天）或使用现有ID
-      const chatId = currentChatId || `chat_${Date.now()}`;
-
-      // 根据第一条用户消息生成默认标题
-      const userMessages = messages.filter((msg) => msg.sender === "user");
-      const defaultTitle =
-        userMessages.length > 0
-          ? userMessages[0].text.length > 20
-            ? userMessages[0].text.substring(0, 17) + "..."
-            : userMessages[0].text
-          : "新对话";
-
-      // 使用当前配置的模型
-      const history: ChatHistory = {
-        id: chatId,
-        title: chatTitle || defaultTitle,
-        provider: currentAiConfig.provider,
-        model: currentAiConfig.model,
-        messages: apiMessages,
-        summary: generateChatSummary(apiMessages),
-        createdAt: Math.floor(Date.now() / 1000),
-        updatedAt: Math.floor(Date.now() / 1000),
-      };
-
-      // 保存到数据库
-      await saveChatHistory(history);
-
-      // 更新当前聊天ID和历史列表
-      setCurrentChatId(chatId);
-      await loadChatHistories();
-
-      // 关闭保存对话框
-      onCloseSaveModal();
-      setChatTitle("");
-    } catch (error) {
-      console.error("保存聊天历史失败:", error);
-    }
-  };
-
-  // 删除聊天历史
-  const handleDeleteChat = async (chatId: string) => {
-    try {
-      await deleteChatHistory(chatId);
-
-      // 如果删除的是当前聊天，创建新聊天
-      if (chatId === currentChatId) {
-        createNewChat();
-      }
-
-      // 重新加载聊天历史列表
-      await loadChatHistories();
-    } catch (error) {
-      console.error("删除聊天历史失败:", error);
-    }
-  };
-
-  // 当选定模型变化时，保存到前端配置 (用于下次进入时记住选择)
-  useEffect(() => {
-    if (currentAiConfig.provider && currentAiConfig.model) {
-      saveFrontendAiConfig({
-        provider: currentAiConfig.provider,
-        model: currentAiConfig.model,
-        ...(currentAiConfig.temperature && {
-          temperature: currentAiConfig.temperature,
-        }),
-        ...(currentAiConfig.maxTokens && {
-          maxTokens: currentAiConfig.maxTokens,
-        }),
-      });
-    }
-  }, [currentAiConfig]);
-
-  // Scroll to bottom when messages update
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleInputChange = (e: any) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleGoToSettings = () => {
-    navigate("/settings?tab=ai"); // 直接导航到AI设置标签页
-  };
-
-  // 检查是否使用DeepSeek Reasoner模型并且没有用户消息历史
-  const isUsingReasoner =
-    currentAiConfig.provider === "deepseek" &&
-    (currentAiConfig.model === "deepseek-reasoner" ||
-      currentAiConfig.model?.includes("reasoner"));
-
-  const hasUserMessage = messages.some((msg) => msg.sender === "user");
-
-  const handleSendMessage = useCallback(async () => {
-    const trimmedInput = inputValue.trim();
-    if (
-      !trimmedInput ||
-      isLoading ||
-      !currentAiConfig.provider ||
-      !currentAiConfig.model
-    )
-      return;
-
-    const userMessage = createChatMessage(trimmedInput, "user");
+    const userMessage = createChatMessage(inputMessage.trim(), "user");
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setIsLoading(true);
-
-    const aiMessageId = crypto.randomUUID();
-    setStreamingMessageId(aiMessageId);
-
-    const initialAiMessage: ChatMessage = {
-      id: aiMessageId,
-      text: "正在思考...",
-      sender: "ai",
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, initialAiMessage]);
-    setIsStreaming(true);
-
-    console.log(
-      `开始流式响应 (${currentAiConfig.provider}/${currentAiConfig.model}) ID:`,
-      aiMessageId,
-    );
+    setInputMessage("");
+    setChatState("streaming");
+    setCurrentResponse("");
 
     try {
-      // 如果是DeepSeek Reasoner且没有用户消息历史，只发送当前用户消息
-      const historyToSend =
-        isUsingReasoner && !hasUserMessage
-          ? [] // 如果是Reasoner且没有用户消息，则发送空历史
-          : messages.filter((m) => m.id !== aiMessageId); // 否则发送过滤后的历史消息
-
-      await getAiResponseStream(
-        trimmedInput,
-        historyToSend,
-        currentAiConfig,
-        (chunk: string) => {
-          setMessages((prevMessages) =>
-            prevMessages.map((msg) => {
-              if (msg.id === aiMessageId) {
-                const newText =
-                  msg.text === "正在思考..." ? chunk : (msg.text || "") + chunk;
-                return { ...msg, text: newText };
-              }
-              return msg;
-            }),
-          );
-        },
-        () => {
-          console.log("流式响应完成 ID:", aiMessageId);
-          setIsLoading(false);
-          setIsStreaming(false);
-          setStreamingMessageId(null);
-        },
-        (error: ChatError) => {
-          console.error("流式获取AI响应出错 ID:", aiMessageId, error);
-          setMessages((prevMessages) =>
-            prevMessages.map((msg) => {
-              if (msg.id === aiMessageId) {
-                return {
-                  ...msg,
-                  text:
-                    msg.text === "正在思考..." || !msg.text
-                      ? `错误: ${error.message}`
-                      : `${msg.text || ""}\n\n> **错误**: ${error.message}`,
-                };
-              }
-              return msg;
-            }),
-          );
-          setIsLoading(false);
-          setIsStreaming(false);
-          setStreamingMessageId(null);
+      await aiManager.sendMessage(
+        userMessage.text,
+        currentSession?.id,
+        selectedProvider || undefined,
+        undefined,
+        {
+          onStart: () => {
+            setChatState("streaming");
+          },
+          onChunk: (chunk) => {
+            setCurrentResponse((prev) => prev + chunk);
+          },
+          onComplete: (fullResponse) => {
+            const aiMessage = createChatMessage(fullResponse, "ai");
+            setMessages((prev) => [...prev, aiMessage]);
+            setCurrentResponse("");
+            setChatState("idle");
+          },
+          onError: (error) => {
+            console.error("AI响应错误:", error);
+            // 检查是否是配置相关的错误
+            if (
+              error.message.includes("未配置") ||
+              error.message.includes("未启用") ||
+              error.message.includes("未找到")
+            ) {
+              toast.error("请前往系统设置 > AI助手 配置AI提供商");
+            } else {
+              toast.error(`AI响应失败: ${error.message}`);
+            }
+            setChatState("error");
+            setCurrentResponse("");
+          },
         },
       );
     } catch (error) {
-      console.error("处理流式响应时发生异常:", error);
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) => {
-          if (msg.id === aiMessageId) {
-            return { ...msg, text: "处理请求时发生意外错误。" };
-          }
-          return msg;
-        }),
-      );
-      setIsLoading(false);
-      setIsStreaming(false);
-      setStreamingMessageId(null);
-    }
-  }, [
-    inputValue,
-    isLoading,
-    messages,
-    navigate,
-    currentAiConfig,
-    isUsingReasoner,
-    hasUserMessage,
-  ]);
+      console.error("发送消息失败:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
-  const handleKeyDown = (e: any) => {
+      // 检查是否是配置相关的错误
+      if (
+        errorMessage.includes("未配置") ||
+        errorMessage.includes("未启用") ||
+        errorMessage.includes("未找到")
+      ) {
+        toast.error("请前往系统设置 > AI助手 配置AI提供商");
+      } else {
+        toast.error("发送消息失败，请检查网络连接或AI配置");
+      }
+      setChatState("error");
+      setCurrentResponse("");
+    }
+  };
+
+  // 停止生成
+  const handleStopGeneration = () => {
+    setChatState("idle");
+    if (currentResponse) {
+      const aiMessage = createChatMessage(currentResponse, "ai");
+      setMessages((prev) => [...prev, aiMessage]);
+    }
+    setCurrentResponse("");
+  };
+
+  // 清空对话
+  const handleClearChat = () => {
+    setMessages([]);
+    setCurrentResponse("");
+    setChatState("idle");
+    setCurrentSession(null);
+  };
+
+  // 复制消息
+  const handleCopyMessage = async (text: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      toast.success("已复制到剪贴板");
+    } else {
+      toast.error("复制失败");
+    }
+  };
+
+  // 处理键盘事件
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const clearChat = () => {
-    // 恢复到初始欢迎消息，这样第一条消息永远是AI消息
-    setMessages([
-      {
-        id: "welcome",
-        text: "你好！我是 TaiASST，你的 AI 助手。有什么可以帮你的吗？",
-        sender: "ai",
-        timestamp: new Date(),
-      },
-    ]);
-    setStreamingMessageId(null); // Clear streaming ID if a chat is cleared mid-stream
-    setCurrentChatId(null); // 清除当前聊天ID，表示这是一个新聊天
+  // 打开设置页面
+  const handleOpenSettings = () => {
+    if (hasConfiguredProviders) {
+      // 如果已配置提供商，直接跳转到设置页面
+      navigate("/settings");
+      toast.success("已跳转到系统设置");
+    } else {
+      toast.info("请前往系统设置 > AI助手 配置AI提供商");
+    }
   };
 
-  // 按provider分组模型 - 只显示已配置的模型
-  const groupedModels = availableModels
-    .filter((model) => model.configured === true) // 只保留已配置的模型
-    .reduce(
-      (acc, model) => {
-        const providerKey = model.providerName || model.provider;
-        if (!acc[providerKey]) {
-          acc[providerKey] = [];
-        }
-        acc[providerKey].push(model);
-        return acc;
-      },
-      {} as Record<string, ModelDefinition[]>,
-    );
+  // 新建对话
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentResponse("");
+    setChatState("idle");
+    setCurrentSession(null);
+  };
 
-  // 检查是否有可用的已配置模型
-  const hasConfiguredModels = availableModels.some(
-    (m) => m.configured === true,
-  );
-
-  // 格式化日期显示
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString("zh-CN", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // 选择历史对话
+  const handleSelectSession = (session: ChatSession) => {
+    setCurrentSession(session);
+    // 将AI消息转换为UI消息格式
+    const uiMessages: ChatMessage[] = session.messages.map((msg, index) => ({
+      id: `${session.id}-${index}`,
+      text: msg.content,
+      sender: msg.role === "user" ? "user" : "ai",
+      timestamp: new Date(session.updatedAt),
+    }));
+    setMessages(uiMessages);
+    setCurrentResponse("");
+    setChatState("idle");
   };
 
   return (
-    <div className="flex flex-col h-full max-h-full overflow-hidden">
-      {/* Header */}
-      <div className="flex justify-between items-center p-3 border-b border-divider/30 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <RiSparklingLine className="text-primary" />
-          <h2 className="text-base font-medium">AI 对话</h2>
+    <div className="flex flex-col h-full w-full overflow-hidden">
+      {/* 页面标题 */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-divider/20 flex-shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 bg-gradient-to-br from-primary to-secondary rounded-xl text-white shadow-lg">
+            <RiRobot2Line className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">AI 助手</h1>
+            <p className="text-foreground/70 text-xs mt-0.5">
+              智能对话助手，支持多种AI模型
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {/* 聊天历史记录下拉菜单 */}
-          <Dropdown>
-            <DropdownTrigger>
-              <Button
-                variant="shadow"
-                size="sm"
-                className="text-foreground/60 hover:text-primary"
-                startContent={<RiHistoryLine size={16} />}
-                endContent={
-                  isLoadingHistories ? (
-                    <div className="animate-spin h-3 w-3 rounded-full border-2 border-primary border-r-transparent"></div>
-                  ) : null
-                }
-              >
-                {currentChatId ? "当前对话" : "新对话"}
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              aria-label="聊天历史"
-              className="max-h-[350px] overflow-y-auto"
-              closeOnSelect
+        <div className="flex items-center gap-2">
+          <Tooltip content="新建对话">
+            <Button isIconOnly size="sm" variant="flat" onPress={handleNewChat}>
+              <RiAddLine />
+            </Button>
+          </Tooltip>
+          <Tooltip content="对话历史">
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              onPress={() => setIsHistoryOpen(true)}
             >
-              <DropdownItem
-                key="new_chat"
-                startContent={<RiFolderAddLine />}
-                onPress={createNewChat}
-                color="primary"
-              >
-                新建对话
-              </DropdownItem>
-
-              {/* 自动保存历史设置 */}
-              <DropdownItem
-                key="auto_save_setting"
-                startContent={
-                  <Switch
-                    size="sm"
-                    isSelected={autoSaveEnabled}
-                    onChange={() => setAutoSaveEnabled((prev) => !prev)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                }
-                closeOnSelect={false}
-              >
-                自动保存对话
-              </DropdownItem>
-
-              {chatHistories.length > 0 ? (
-                <>
-                  {chatHistories.map((history) => (
-                    <DropdownItem
-                      key={history.id}
-                      description={history.summary || "无摘要"}
-                      startContent={<RiMessageLine />}
-                      endContent={
-                        <div className="flex items-center gap-1">
-                          <small className="text-xs text-foreground/50">
-                            {formatDate(history.updatedAt)}
-                          </small>
-                          <Button
-                            isIconOnly
-                            variant="shadow"
-                            size="sm"
-                            onPress={(e: any) => {
-                              e.stopPropagation();
-                              handleDeleteChat(history.id);
-                            }}
-                          >
-                            <RiDeleteBinLine
-                              size={14}
-                              className="text-danger"
-                            />
-                          </Button>
-                        </div>
-                      }
-                      onPress={() => loadChatHistory(history.id)}
-                      className="py-2"
-                    >
-                      {history.title}
-                    </DropdownItem>
-                  ))}
-                </>
-              ) : (
-                <DropdownItem key="no-history" isDisabled>
-                  无历史记录
-                </DropdownItem>
-              )}
-            </DropdownMenu>
-          </Dropdown>
-
-          {/* 模型选择器 */}
-          <Select
-            aria-label="选择AI模型"
-            placeholder={isInitializing ? "加载中..." : "选择模型"}
-            variant="bordered"
-            size="sm"
-            className="w-[200px] min-w-[180px]"
-            classNames={{
-              value: "text-xs",
-              trigger:
-                "h-8 min-h-unit-8 bg-background/80 dark:bg-default-100/50 border-default-300/50 dark:border-default-200/30 group-data-[focus=true]:border-primary",
-              listboxWrapper: "max-h-[300px]",
-              popoverContent:
-                "bg-background/90 dark:bg-default-100/90 backdrop-blur-md backdrop-saturate-150 border border-default-300/50 dark:border-default-200/30",
-            }}
-            selectedKeys={currentAiConfig.model ? [currentAiConfig.model] : []}
-            onSelectionChange={(keys) => {
-              const selectedKey = Array.from(keys)[0] as string;
-              if (selectedKey) {
-                const model = availableModels.find(
-                  (m) => m.nativeModelId === selectedKey,
-                );
-                if (model) {
-                  setCurrentAiConfig((prev) => ({
-                    ...prev,
-                    provider: model.provider,
-                    model: model.nativeModelId,
-                  }));
-                }
-              }
-            }}
-            startContent={
-              <RiMistLine className="text-foreground/60" size={16} />
-            }
-            isDisabled={isInitializing || !hasConfiguredModels}
+              <RiHistoryLine />
+            </Button>
+          </Tooltip>
+          <Tooltip content="清空对话">
+            <Button
+              isIconOnly
+              size="sm"
+              variant="flat"
+              onPress={handleClearChat}
+              isDisabled={messages.length === 0 && !currentResponse}
+            >
+              <RiDeleteBinLine />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            content={hasConfiguredProviders ? "打开设置" : "配置AI提供商"}
           >
-            {Object.entries(groupedModels).map(
-              ([providerDisplayKey, models]) => (
-                <SelectSection
-                  key={providerDisplayKey}
-                  title={providerDisplayKey}
-                >
-                  {models.map((model) => (
-                    <SelectItem
-                      key={model.nativeModelId}
-                      textValue={model.name}
-                    >
-                      <span className="text-sm">{model.name}</span>
-                    </SelectItem>
-                  ))}
-                </SelectSection>
-              ),
-            )}
-          </Select>
-
-          {/* 保存聊天按钮 */}
-          <Tooltip content="保存对话" placement="bottom" delay={0}>
             <Button
               isIconOnly
-              variant="shadow"
               size="sm"
-              radius="full"
-              onPress={onOpenSaveModal}
-              isDisabled={messages.length <= 1} // 如果只有欢迎消息，禁用保存
-              className="text-foreground/60 hover:text-primary"
+              variant="flat"
+              color={hasConfiguredProviders ? "default" : "warning"}
+              onPress={handleOpenSettings}
             >
-              <RiSaveLine size={18} />
-            </Button>
-          </Tooltip>
-
-          <Tooltip content="AI设置/API配置" placement="bottom" delay={0}>
-            <Button
-              isIconOnly
-              variant="shadow"
-              size="sm"
-              radius="full"
-              onPress={handleGoToSettings}
-              className="text-foreground/60 hover:text-primary"
-            >
-              <RiSettings3Line size={18} />
-            </Button>
-          </Tooltip>
-          <Tooltip content="清空对话" placement="bottom" delay={0}>
-            <Button
-              isIconOnly
-              variant="shadow"
-              size="sm"
-              radius="full"
-              onPress={clearChat}
-              className="text-foreground/60 hover:text-danger"
-            >
-              <RiDeleteBinLine size={18} />
+              <RiSettings4Line />
             </Button>
           </Tooltip>
         </div>
       </div>
 
-      {/* 保存对话模态框 */}
-      <Modal isOpen={isSaveModalOpen} onClose={onCloseSaveModal}>
-        <ModalContent>
-          <ModalHeader>保存对话</ModalHeader>
-          <ModalBody>
-            <Input
-              label="对话标题"
-              placeholder="输入一个有意义的标题"
-              value={chatTitle}
-              onChange={(e) => setChatTitle(e.target.value)}
-              variant="bordered"
-              autoFocus
-            />
-            {!currentChatId && (
-              <div className="flex items-center gap-2 mt-3">
-                <Switch
-                  size="sm"
-                  isSelected={autoSaveEnabled}
-                  onChange={() => setAutoSaveEnabled((prev) => !prev)}
-                />
-                <span className="text-sm">启用自动保存对话</span>
-              </div>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="shadow" size="sm" onPress={onCloseSaveModal}>
-              取消
-            </Button>
-            <Button
-              color="primary"
-              variant="shadow"
-              size="sm"
-              onPress={saveCurrentChat}
-            >
-              保存
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      {/* 聊天区域 */}
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* 消息列表 */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="h-full px-4 py-4">
+            <div className="max-w-4xl mx-auto space-y-4 min-h-full flex flex-col">
+              {messages.length === 0 && !currentResponse ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mx-auto mb-4">
+                      <RiRobot2Line className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {hasConfiguredProviders
+                        ? "开始与AI助手对话"
+                        : "配置AI助手"}
+                    </h3>
+                    <p className="text-foreground/60 text-sm max-w-md mx-auto mb-4">
+                      {hasConfiguredProviders
+                        ? "我可以帮助您回答问题、提供建议、协助写作等。请在下方输入您的问题。"
+                        : "请先配置AI提供商才能开始使用AI助手功能。"}
+                    </p>
+                    {!hasConfiguredProviders && (
+                      <Button
+                        color="primary"
+                        variant="flat"
+                        onPress={handleOpenSettings}
+                        startContent={<RiSettings4Line />}
+                      >
+                        前往配置
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 flex-1">
+                  {messages.map((message) => (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      onCopy={() => handleCopyMessage(message.text)}
+                    />
+                  ))}
 
-      {/* API密钥未配置警告 */}
-      {!hasConfiguredModels && !isInitializing && (
-        <div className="mx-4 mt-4 p-3 bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400 rounded-lg border border-warning-200 dark:border-warning-800 flex items-center gap-2">
-          <RiSettings3Line className="flex-shrink-0" size={18} />
-          <p className="text-sm">
-            未找到已配置的AI模型。
-            <Button
-              size="sm"
-              color="warning"
-              variant="shadow"
-              className="ml-2"
-              onPress={handleGoToSettings}
-            >
-              前往设置
-            </Button>
-          </p>
-        </div>
-      )}
-
-      {/* 加载中提示 */}
-      {isInitializing && (
-        <div className="mx-4 mt-4 p-3 bg-secondary-50 dark:bg-secondary-900/20 text-secondary-700 dark:text-secondary-400 rounded-lg border border-secondary-200 dark:border-secondary-800 flex items-center gap-2">
-          <div className="animate-spin mr-2">⏳</div>
-          <p className="text-sm">正在加载AI配置...</p>
-        </div>
-      )}
-
-      {/* Message List Area */}
-      <ScrollShadow
-        ref={scrollRef}
-        hideScrollBar
-        className="flex-1 overflow-y-auto p-4 space-y-0"
-      >
-        {messages.map((message) => (
-          <MessageItem
-            key={message.id}
-            message={message}
-            isStreaming={isStreaming}
-            isCurrentStreamingMessage={message.id === streamingMessageId}
-          />
-        ))}
-        {isLoading && !isStreaming && (
-          <div className="flex items-end gap-2 justify-start mb-4">
-            <Avatar
-              icon={<RiRobot2Line size={20} />}
-              size="sm"
-              radius="full"
-              className="mb-1 bg-gradient-to-br from-secondary to-primary text-white animate-pulse"
-            />
-            <div className="p-2.5 rounded-xl shadow-sm bg-content1 dark:bg-content2 rounded-bl-none glass-light dark:glass-dark border border-divider/10">
-              <div className="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+                  {/* 当前AI响应 */}
+                  {currentResponse && (
+                    <MessageBubble
+                      message={createChatMessage(currentResponse, "ai")}
+                      onCopy={() => handleCopyMessage(currentResponse)}
+                      isStreaming={true}
+                    />
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </ScrollShadow>
+        </div>
 
-      {/* Input Area */}
-      <div className="p-3 border-t border-divider/30 flex items-center gap-2 bg-content1 dark:bg-content2 glass-light dark:glass-dark flex-shrink-0">
-        <Textarea
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            isInitializing
-              ? "正在加载配置..."
-              : hasConfiguredModels
-                ? "输入您的问题或指令... (Shift+Enter 换行)"
-                : "请先配置AI模型"
-          }
-          minRows={1}
-          maxRows={5}
-          variant="bordered"
-          radius="md"
-          isDisabled={isLoading || !hasConfiguredModels || isInitializing}
-          className="flex-1"
-          classNames={{
-            inputWrapper:
-              "bg-background/80 dark:bg-default-100/50 border-default-300/50 dark:border-default-200/30 group-data-[focus=true]:border-primary",
-            input: "py-2 text-sm",
-            description: "text-xs text-foreground/60",
-          }}
-        />
-        <Button
-          isIconOnly
-          color="primary"
-          size="lg"
-          onPress={handleSendMessage}
-          isLoading={isLoading}
-          isDisabled={
-            !inputValue.trim() ||
-            !hasConfiguredModels ||
-            isStreaming ||
-            isInitializing
-          }
-          className="flex-shrink-0 click-scale shadow-sm hover:shadow-primary/30"
-        >
-          {!isLoading && <RiSendPlane2Fill size={20} />}
-        </Button>
+        {/* 输入区域 */}
+        <div className="border-t border-divider/20 px-4 py-3 flex-shrink-0 bg-background/80 backdrop-blur-sm">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-3 items-end">
+              <div className="flex-1">
+                <Textarea
+                  ref={textareaRef}
+                  value={inputMessage}
+                  onValueChange={setInputMessage}
+                  onKeyDown={handleKeyDown}
+                  placeholder={
+                    hasConfiguredProviders
+                      ? "输入您的问题..."
+                      : "请先配置AI提供商"
+                  }
+                  minRows={1}
+                  maxRows={4}
+                  variant="bordered"
+                  size="sm"
+                  isDisabled={!hasConfiguredProviders}
+                  classNames={{
+                    input: "resize-none",
+                    inputWrapper: "min-h-unit-10",
+                  }}
+                />
+              </div>
+              <div className="flex gap-2">
+                {chatState === "streaming" ? (
+                  <Button
+                    color="danger"
+                    variant="flat"
+                    size="sm"
+                    onPress={handleStopGeneration}
+                    startContent={<RiStopCircleLine />}
+                  >
+                    停止
+                  </Button>
+                ) : (
+                  <Button
+                    color="primary"
+                    size="sm"
+                    onPress={handleSendMessage}
+                    isDisabled={!inputMessage.trim() || !hasConfiguredProviders}
+                    startContent={<RiSendPlaneLine />}
+                  >
+                    发送
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* 状态指示器 */}
+            {chatState === "streaming" && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-foreground/60">
+                <Spinner size="sm" />
+                <span>AI正在思考中...</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* 对话历史模态框 */}
+      <ChatHistory
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectSession={handleSelectSession}
+        currentSessionId={currentSession?.id}
+      />
     </div>
   );
 }
 
 export default AiApp;
-
-// Basic CSS for typing indicator and cursor
-const style = document.createElement("style");
-style.textContent = `
-.typing-indicator {
-  display: flex;
-  padding: 4px 8px;
-}
-.typing-indicator span {
-  height: 8px;
-  width: 8px;
-  margin: 0 2px;
-  background-color: currentColor; /* Use currentColor to adapt to text color */
-  border-radius: 50%;
-  opacity: 0.4;
-  animation: typing-indicator-bounce 1s infinite ease-in-out;
-}
-.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-@keyframes typing-indicator-bounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
-  40% { transform: scale(1.0); opacity: 1; }
-}
-.streaming-cursor {
-  display: inline-block;
-  width: 1px; /* More like a cursor */
-  height: 1em;
-  background-color: currentColor;
-  animation: streaming-cursor-blink 1s infinite;
-  margin-left: 1px;
-  vertical-align: text-bottom;
-}
-@keyframes streaming-cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-`;
-document.head.append(style);

@@ -1,0 +1,225 @@
+/**
+ * FlowGram.ai 工作流编辑器自定义样式
+ */
+
+/* 编辑器容器 */
+.flowgram-editor-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--background));
+}
+
+/* 工具栏样式 */
+.flowgram-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid hsl(var(--divider) / 0.2);
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* 主内容区域 */
+.flowgram-main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 节点面板样式 */
+.flowgram-node-panel {
+  width: 16rem;
+  background: hsl(var(--background) / 0.5);
+  border-right: 1px solid hsl(var(--divider) / 0.2);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.flowgram-node-panel h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--foreground));
+}
+
+/* 节点卡片样式 */
+.flowgram-node-card {
+  cursor: grab;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.flowgram-node-card:hover {
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.15);
+  transform: translateY(-1px);
+}
+
+.flowgram-node-card:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.flowgram-node-card .node-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+}
+
+.flowgram-node-card .node-info h4 {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.flowgram-node-card .node-info p {
+  font-size: 0.75rem;
+  color: hsl(var(--foreground) / 0.6);
+}
+
+/* 编辑器画布样式 */
+.flowgram-canvas {
+  flex: 1;
+  position: relative;
+  background: hsl(var(--default-50));
+}
+
+/* 覆盖 FlowGram.ai 默认样式 */
+.flowgram-editor-container .flowgram-free-layout-editor {
+  background: hsl(var(--default-50));
+  border: none;
+}
+
+.flowgram-editor-container .flowgram-node {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--divider) / 0.2);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px hsl(var(--foreground) / 0.1);
+  transition: all 0.2s ease;
+}
+
+.flowgram-editor-container .flowgram-node:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.15);
+}
+
+.flowgram-editor-container .flowgram-node.selected {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}
+
+.flowgram-editor-container .flowgram-edge {
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+}
+
+.flowgram-editor-container .flowgram-edge:hover {
+  stroke: hsl(var(--primary) / 0.8);
+  stroke-width: 3;
+}
+
+/* 节点端口样式 */
+.flowgram-editor-container .flowgram-port {
+  background: hsl(var(--background));
+  border: 2px solid hsl(var(--primary));
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+}
+
+.flowgram-editor-container .flowgram-port:hover {
+  background: hsl(var(--primary));
+  transform: scale(1.2);
+}
+
+/* 工具栏按钮组 */
+.flowgram-toolbar .button-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flowgram-toolbar .zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .flowgram-node-panel {
+    width: 12rem;
+    padding: 0.75rem;
+  }
+
+  .flowgram-toolbar {
+    padding: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .flowgram-toolbar .button-group {
+    gap: 0.25rem;
+  }
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .flowgram-editor-container .flowgram-node {
+    background: hsl(var(--content1));
+    border-color: hsl(var(--divider) / 0.3);
+  }
+
+  .flowgram-editor-container .flowgram-canvas {
+    background: hsl(var(--content1));
+  }
+}
+
+/* 动画效果 */
+.flowgram-node-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 拖拽状态 */
+.flowgram-editor-container .flowgram-node.dragging {
+  opacity: 0.8;
+  transform: scale(1.05);
+  z-index: 1000;
+}
+
+/* 连接线动画 */
+.flowgram-editor-container .flowgram-edge {
+  animation: drawLine 0.3s ease-out;
+}
+
+@keyframes drawLine {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 0;
+    stroke-dashoffset: 0;
+  }
+}

@@ -35,7 +35,7 @@ const HeaderLayout: React.FC<HeaderLayoutProps> = ({
         {menuItems.find((item) => item.key === currentKey)?.label}
       </div>
 
-      <div className="flex items-center gap-x-2">
+      <div className="flex items-center gap-x-3">
         <WindowControls
           onMinimize={onMinimize}
           onMaximize={onMaximize}

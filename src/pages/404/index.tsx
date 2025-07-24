@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import { Button, Card, CardBody } from "@heroui/react";
-import { RiErrorWarningLine, RiHome2Line } from "@remixicon/react";
+import { RiErrorWarningLine, RiHome2Line } from "react-icons/ri";
 import { motion } from "framer-motion";
 
 const StatusCard: React.FC<{
@@ -14,7 +14,7 @@ const StatusCard: React.FC<{
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.3 }}
+    transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
     className="flex justify-center items-center h-full p-4"
   >
     <Card className="glass-light dark:glass-dark max-w-md w-full shadow-md">

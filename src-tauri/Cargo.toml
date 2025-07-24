@@ -35,7 +35,22 @@ zip = "0.6.6"
 tauri-plugin-http = "2"
 tauri-plugin-log = "2"
 log = "0.4"
-sqlx = { version = "0.8", features = [ "runtime-tokio" ] }
+sqlx = { version = "0.8", features = [ "runtime-tokio", "sqlite" ] }
+
+# 安全加密依赖
+rsa = "0.9"
+rand = "0.8"
+aes-gcm = "0.10"
+pbkdf2 = "0.12"
+sha2 = "0.10"
+argon2 = "0.5"
+base32 = "0.5"
+qrcode = "0.14"
+bip39 = "2.0"
+hex = "0.4"
+base64 = "0.21"
+uuid = { version = "1.0", features = ["v4"] }
+thiserror = "1.0"
 
 [dependencies.tauri-plugin-sql]
 features = ["sqlite"]

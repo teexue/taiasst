@@ -6,7 +6,7 @@ import {
   RiFileZipLine,
   RiCloseCircleLine,
   RiCheckLine,
-} from "@remixicon/react";
+} from "react-icons/ri";
 import { error } from "@tauri-apps/plugin-log";
 import {
   installPluginWithProgress,

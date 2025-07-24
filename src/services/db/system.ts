@@ -9,6 +9,10 @@ export interface SystemSettings {
   autoStart: boolean;
   autoUpdate: boolean;
   currentTheme: string;
+  // 安全设置
+  autoLockEnabled: boolean;
+  autoLockTime: number; // 分钟
+  lockOnSystemSleep: boolean;
 }
 
 /**
@@ -103,6 +107,10 @@ export async function getAllSystemSettings(
     autoStart: false,
     autoUpdate: true,
     currentTheme: "light",
+    // 安全设置默认值
+    autoLockEnabled: true,
+    autoLockTime: 30, // 默认30分钟
+    lockOnSystemSleep: true,
   };
 
   let lastError: any;
@@ -135,6 +143,17 @@ export async function getAllSystemSettings(
         ),
         currentTheme:
           settingsMap["currentTheme"] || defaultSettings.currentTheme,
+        // 安全设置
+        autoLockEnabled: parseBoolean(
+          settingsMap["autoLockEnabled"],
+          defaultSettings.autoLockEnabled,
+        ),
+        autoLockTime:
+          parseInt(settingsMap["autoLockTime"]) || defaultSettings.autoLockTime,
+        lockOnSystemSleep: parseBoolean(
+          settingsMap["lockOnSystemSleep"],
+          defaultSettings.lockOnSystemSleep,
+        ),
       };
     } catch (err: any) {
       lastError = err;

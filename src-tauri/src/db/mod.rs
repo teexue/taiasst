@@ -1,4 +1,4 @@
-mod base;
-mod migrations;
+pub mod base;
+pub mod migrations;
 
 pub use base::*;
