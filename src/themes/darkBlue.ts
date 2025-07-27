@@ -1,154 +1,119 @@
 // src/themes/darkBlue.ts
-// 深蓝主题 - 深邃海洋蓝色调
-import { ThemeConfig } from "./base"; // 使用正确的类型
-
-// 定义深蓝色阶 - 示例，请根据设计调整
-const blue = {
-  50: "#eef6ff",
-  100: "#d3e5fe",
-  200: "#a4cdfe",
-  300: "#75b4fd",
-  400: "#369afb",
-  500: "#0284c7", // 主色
-  600: "#0369a1",
-  700: "#075985",
-  800: "#0c4a6e",
-  900: "#082f49",
-  DEFAULT: "#0284c7", // 主色
-  foreground: "#ffffff", // 主色按钮上的文字颜色
-};
+// 深蓝色主题 - 深邃蓝色调 (深色风格)
+import { ThemeConfig } from "./base";
+import { baseTheme } from "./base";
 
 export const darkBlueTheme: ThemeConfig = {
-  extend: "dark", // 继承深色主题的基本设置
+  extend: "dark",
+  layout: baseTheme.dark.layout,
   colors: {
-    background: {
-      DEFAULT: "#0a192f", // 深蓝背景
-      foreground: "#ECEDEE", // 背景上的默认文字颜色 (确保对比度)
+    default: {
+      "50": "#0a141e",
+      "100": "#0f1d2d",
+      "200": "#15273c",
+      "300": "#1c324b",
+      "400": "#223c5a",
+      "500": "#2d4e73",
+      "600": "#477ab2",
+      "700": "#75a7d8",
+      "800": "#aad1f7",
+      "900": "#d2e8ff",
+      foreground: "#fff",
+      DEFAULT: "#223c5a",
     },
-    foreground: {
-      DEFAULT: "#d1d5db", // Slightly darker default foreground (was #ECEDEE)
-      // 可以根据需要定义前景色的其他色阶，或让其继承
-      // 例如:
-      50: "#ffffff",
-      100: "#f8fafc",
-      200: "#e2e8f0",
-      300: "#d1dbe7",
-      400: "#d0d0e0", // Updated foreground[400] for inactive tabs
-      500: "#c0c0d0", // Updated foreground[500] for inactive tabs
-      600: "#a0aec0",
-      700: "#718096",
-      800: "#4a5568",
-      900: "#2d3748",
+    primary: {
+      "50": "#0f1e2d",
+      "100": "#183144",
+      "200": "#21445c",
+      "300": "#2b5773",
+      "400": "#356a8b",
+      "500": "#4096c3",
+      "600": "#5bacd8",
+      "700": "#7bc2e5",
+      "800": "#9bd8f2",
+      "900": "#d0eefb",
+      foreground: "#fff",
+      DEFAULT: "#4096c3",
     },
-    divider: {
-      DEFAULT: "#1e293b", // 深蓝分割线 (需要确保与背景有对比度)
-      foreground: "#ECEDEE", // 分割线上的文字颜色
-    },
-    focus: {
-      DEFAULT: blue[400], // 焦点颜色使用较亮的蓝色
-    },
-    primary: blue,
     secondary: {
-      50: "#f3f6fb",
-      100: "#e5e7eb",
-      200: "#d1d5db",
-      300: "#9ca3af",
-      400: "#6b7280",
-      500: "#4b5563", // 次要颜色 - 深灰色
-      600: "#374151",
-      700: "#1f2937",
-      800: "#111827",
-      900: "#080a13",
-      DEFAULT: "#374151",
-      foreground: "#ECEDEE",
+      "50": "#10243c",
+      "100": "#1a3a60",
+      "200": "#245084",
+      "300": "#2e66a8",
+      "400": "#387ccc",
+      "500": "#4293f0",
+      "600": "#65a5f2",
+      "700": "#88b7f4",
+      "800": "#abbef6",
+      "900": "#ceeefc",
+      foreground: "#000",
+      DEFAULT: "#4293f0",
     },
     success: {
-      50: "#f0fdf4",
-      100: "#dcfce7",
-      200: "#bbf7d0",
-      300: "#86efac",
-      400: "#4ade80",
-      500: "#22c55e", // 成功颜色 - 绿色
-      600: "#16a34a",
-      700: "#15803d",
-      800: "#166534",
-      900: "#14532d",
-      DEFAULT: "#22c55e",
-      foreground: "#ffffff",
+      "50": "#0b412a",
+      "100": "#116743",
+      "200": "#178d5c",
+      "300": "#1db374",
+      "400": "#23d98d",
+      "500": "#4ae0a1",
+      "600": "#70e6b5",
+      "700": "#97edc9",
+      "800": "#bdf4dd",
+      "900": "#e4faf1",
+      foreground: "#000",
+      DEFAULT: "#23d98d",
     },
     warning: {
-      50: "#fffbeb",
-      100: "#fef3c7",
-      200: "#fde68a",
-      300: "#fcd34d",
-      400: "#fbbf24",
-      500: "#f59e0b", // 警告颜色 - 琥珀色
-      600: "#d97706",
-      700: "#b45309",
-      800: "#92400e",
-      900: "#78350f",
-      DEFAULT: "#f59e0b",
-      foreground: "#ffffff", // 确保警告色背景上的文字可读
+      "50": "#4d3d11",
+      "100": "#79601c",
+      "200": "#a68326",
+      "300": "#d2a730",
+      "400": "#ffca3a",
+      "500": "#ffd35c",
+      "600": "#ffdd7f",
+      "700": "#ffe6a1",
+      "800": "#ffefc4",
+      "900": "#fff8e6",
+      foreground: "#000",
+      DEFAULT: "#ffca3a",
     },
     danger: {
-      50: "#fef2f2",
-      100: "#fee2e2",
-      200: "#fecaca",
-      300: "#fca5a5",
-      400: "#f87171",
-      500: "#ef4444", // 危险颜色 - 红色
-      600: "#dc2626",
-      700: "#b91c1c",
-      800: "#991b1b",
-      900: "#7f1d1d",
-      DEFAULT: "#ef4444",
-      foreground: "#ffffff",
+      "50": "#4d2020",
+      "100": "#793333",
+      "200": "#a64646",
+      "300": "#d25858",
+      "400": "#ff6b6b",
+      "500": "#ff8585",
+      "600": "#ff9f9f",
+      "700": "#ffb9b9",
+      "800": "#ffd3d3",
+      "900": "#ffeded",
+      foreground: "#000",
+      DEFAULT: "#ff6b6b",
     },
-    // Content Colors - 深色主题下通常使用不同层级的灰色或深色
+    background: "#0d1b2a",
+    foreground: "#90c2e7",
     content1: {
-      // 卡片、模态框等背景
-      DEFAULT: "#1f2937", // 比背景稍浅
-      foreground: "#ECEDEE",
+      DEFAULT: "#102435",
+      foreground: "#fff",
     },
     content2: {
-      DEFAULT: "#374151", // 比 content1 稍浅
-      foreground: "#ECEDEE",
+      DEFAULT: "#143047",
+      foreground: "#fff",
     },
     content3: {
-      DEFAULT: "#4b5563",
-      foreground: "#ECEDEE",
+      DEFAULT: "#193c5a",
+      foreground: "#fff",
     },
     content4: {
-      DEFAULT: "#6b7280",
-      foreground: "#ECEDEE",
+      DEFAULT: "#1e486d",
+      foreground: "#fff",
     },
-    // Explicitly define 'default' scale if needed, otherwise it inherits from 'dark'
-    // If inheriting, the change in dark.ts should apply. If explicit control needed:
-    default: {
-      DEFAULT: "#1f2937", // Example: Inherited default
-      foreground: "#ECEDEE", // Example: Inherited foreground
-      50: "#f8fafc",
-      100: "#e2e8f0",
-      200: "#cbd5e1",
-      300: "#9ca3af",
-      400: "#6b7280",
-      500: "#9090a0", // Updated default-500 (using dark theme's foreground.100)
-      600: "#374151",
-      700: "#1f2937",
-      800: "#111827",
-      900: "#080a13",
-    },
-  },
-  layout: {
-    radius: {
-      small: "6px",
-      medium: "8px",
-      large: "12px",
-    },
-    borderWidth: {
-      small: "1px",
-      medium: "1px", // 深色主题通常边框较细
-      large: "2px",
+    focus: "#4096c3", // 对应主色
+    overlay: "#ffffff",
+    divider: {
+      DEFAULT: "#183144", // 深蓝边框
+      foreground: "#f0f0f0",
     },
   },
 };

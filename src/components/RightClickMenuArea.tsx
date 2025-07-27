@@ -13,13 +13,13 @@ interface RightClickMenuAreaProps {
  * 自定义右键菜单区域组件
  * 使用此组件包裹的内容将使用自定义的右键菜单
  */
-const RightClickMenuArea: React.FC<RightClickMenuAreaProps> = ({
+function RightClickMenuArea({
   children,
   menuItems,
   onContextMenu,
   className = "",
   style,
-}) => {
+}: RightClickMenuAreaProps) {
   const { showContextMenu, setIsCustomMenuArea } = useContextMenu();
 
   // 进入区域时设置标记
@@ -56,6 +56,6 @@ const RightClickMenuArea: React.FC<RightClickMenuAreaProps> = ({
       {children}
     </div>
   );
-};
+}
 
 export default RightClickMenuArea;

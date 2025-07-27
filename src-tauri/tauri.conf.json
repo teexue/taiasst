@@ -17,7 +17,7 @@
         "height": 768,
         "decorations": false,
         "minimizable": true,
-        "visible": true,
+        "visible": false,
         "alwaysOnTop": false,
         "center": true,
         "dragDropEnabled": false

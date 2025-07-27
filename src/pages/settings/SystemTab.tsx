@@ -1,49 +1,59 @@
 import React, { useState, useEffect } from "react";
 import {
   Switch,
-  // RadioGroup, // Removed as ThemeCard is used
-  // Radio, // Removed as ThemeCard is used
   Card,
-  CardHeader,
   CardBody,
   Tooltip,
-  SwitchProps, // Import SwitchProps type
+  SwitchProps,
+  Chip,
+  Divider,
 } from "@heroui/react";
 import { useTheme } from "@heroui/use-theme";
 import { themeNames, ThemeName, themes } from "../../themes";
-import { RiCheckLine } from "@remixicon/react"; // Icon for selected theme
-import { motion } from "framer-motion"; // For theme card animation
+import {
+  RiCheckLine,
+  RiComputerLine,
+  RiSettings4Line,
+  RiToggleLine,
+} from "react-icons/ri";
+import { motion } from "framer-motion";
 import {
   getAllSystemSettings,
   saveAllSystemSettings,
 } from "../../services/db/system";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { toast } from "sonner";
-// Define props type for SettingItem
 interface SettingItemProps {
   label: string;
   description?: string;
   control: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
-// Reusable component for setting items (Matches design doc)
 const SettingItem: React.FC<SettingItemProps> = ({
   label,
   description,
   control,
+  icon,
 }) => (
-  <div className="flex items-center justify-between p-4">
-    <div>
-      <p className="text-sm font-medium">{label}</p>
-      {description && (
-        <p className="text-xs text-foreground/60">{description}</p>
+  <div className="flex items-center justify-between py-4 px-1">
+    <div className="flex items-center gap-4">
+      {icon && (
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="text-primary">{icon}</div>
+        </div>
       )}
+      <div className="flex-1">
+        <h4 className="font-medium text-foreground">{label}</h4>
+        {description && (
+          <p className="text-sm text-foreground/60 mt-1">{description}</p>
+        )}
+      </div>
     </div>
-    {control}
+    <div className="flex-shrink-0">{control}</div>
   </div>
 );
 
-// Define type for theme object used in ThemeCard
 interface ThemeObject {
   id: ThemeName;
   name: string;
@@ -55,14 +65,12 @@ interface ThemeObject {
   isDark: boolean;
 }
 
-// Define props type for ThemeCard
 interface ThemeCardProps {
   theme: ThemeObject;
   isActive: boolean;
   onSelect: () => void;
 }
 
-// Reusable theme card component (Matches design doc)
 const ThemeCard: React.FC<ThemeCardProps> = ({ theme, isActive, onSelect }) => {
   const getColorValue = (color?: string | { DEFAULT?: string }): string => {
     if (typeof color === "object" && color?.DEFAULT) {
@@ -71,56 +79,58 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ theme, isActive, onSelect }) => {
     return (color as string) || "#cccccc";
   };
 
-  // 获取背景色和主色
   const backgroundColor = getColorValue(theme.colors.background);
   const primaryColor = getColorValue(theme.colors.primary);
-
-  // 调整渐变，让 primary 颜色范围更大
-  const gradientEffect = `linear-gradient(135deg, ${primaryColor} 0%, transparent 80%)`; // 调整为 80%
 
   return (
     <Tooltip content={theme.name} placement="top" delay={0}>
       <motion.div
         onClick={onSelect}
         className={`
-        relative overflow-hidden rounded-lg cursor-pointer group
-        transition-all duration-200
-        border-2 hover:scale-105 hover:shadow-md
-        ${
-          isActive
-            ? `border-primary shadow-md shadow-${theme.id}/20`
-            : `border-primary/20` // 非激活状态使用低透明度主色边框
-        }
-      `}
-        style={{ aspectRatio: "16/9", position: "relative" }} // 添加 relative 定位
+          relative overflow-hidden rounded-xl cursor-pointer group
+          transition-all duration-300 ease-out
+          border-2 hover:scale-105 hover:shadow-lg
+          ${
+            isActive
+              ? "border-primary shadow-md ring-2 ring-primary/20"
+              : "border-default-200 hover:border-primary/40"
+          }
+        `}
+        style={{ aspectRatio: "3/2" }}
         whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.98 }}
       >
-        {/* 底色使用主题背景色 */}
         <div
           className="absolute inset-0 w-full h-full"
           style={{ background: backgroundColor }}
-        ></div>
-        {/* 叠加渐变效果层 - 增加透明度 */}
+        />
         <div
-          className="absolute inset-0 w-full h-full opacity-60 mix-blend-overlay" // 增加到 opacity-60
-          style={{ background: gradientEffect }}
-        ></div>
+          className="absolute inset-0 w-full h-full opacity-40"
+          style={{
+            background: `linear-gradient(135deg, ${primaryColor} 0%, transparent 70%)`,
+          }}
+        />
 
-        {/* 选中状态图标等保持不变 */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity">
-          {isActive && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.2 }}
-              className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center shadow"
-            >
-              <RiCheckLine className="w-4 h-4 text-primary" />
-            </motion.div>
-          )}
+        {/* 主题名称 */}
+        <div className="absolute bottom-2 left-2 right-2">
+          <div className="bg-black/20 backdrop-blur-sm rounded-lg px-2 py-1">
+            <p className="text-xs font-medium text-white truncate">
+              {theme.name}
+            </p>
+          </div>
         </div>
-        <span className="sr-only">{theme.name}</span>
+
+        {/* 选中状态 */}
+        {isActive && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-lg"
+          >
+            <RiCheckLine className="w-4 h-4 text-white" />
+          </motion.div>
+        )}
       </motion.div>
     </Tooltip>
   );
@@ -178,6 +188,10 @@ function SystemTab() {
         autoUpdate:
           "autoUpdate" in settings ? settings.autoUpdate! : autoUpdate,
         currentTheme: settings.currentTheme || currentTheme,
+        // 添加安全相关的默认值（已清理功能，但保持类型兼容）
+        autoLockEnabled: false,
+        autoLockTime: 30,
+        lockOnSystemSleep: false,
       };
 
       // 保存到数据库
@@ -280,97 +294,135 @@ function SystemTab() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full">加载中...</div>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-foreground/60">加载中...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    // Use space-y for vertical spacing between cards
-    <div className="space-y-6">
-      {/* Basic Settings Card - Applying Glassmorphism */}
-      <Card className="glass-light dark:glass-dark overflow-hidden shadow-sm">
-        <CardHeader className="border-b border-divider/30 bg-black/5 dark:bg-white/5 p-4">
-          <h2 className="text-base font-medium">基本设置</h2>
-        </CardHeader>
-        <CardBody className="p-0">
-          <div className="divide-y divide-divider/30">
-            <SettingItem
-              label="最小化到托盘"
-              description="关闭窗口时最小化到系统托盘而非退出应用"
-              control={
-                <Switch
-                  {...switchProps}
-                  isSelected={minimizeToTray}
-                  onValueChange={handleMinimizeToTrayChange}
-                  aria-label="最小化到托盘"
-                />
-              }
-            />
-            <SettingItem
-              label="开机自启动"
-              description="系统启动时自动启动应用"
-              control={
-                <Switch
-                  {...switchProps}
-                  isSelected={autoStart}
-                  onValueChange={handleAutoStartChange}
-                  aria-label="开机自启动"
-                />
-              }
-            />
-            <SettingItem
-              label="自动更新"
-              description="有新版本时自动下载并安装更新"
-              control={
-                <Switch
-                  {...switchProps}
-                  isSelected={autoUpdate}
-                  onValueChange={handleAutoUpdateChange}
-                  aria-label="自动更新"
-                />
-              }
-            />
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Theme Settings Card - Applying Glassmorphism */}
-      <Card className="glass-light dark:glass-dark overflow-hidden shadow-sm">
-        <CardHeader className="border-b border-divider/30 bg-black/5 dark:bg-white/5 p-4">
-          <h2 className="text-base font-medium">应用主题</h2>
-        </CardHeader>
-        <CardBody className="p-4 md:p-6 space-y-6">
-          {/* Light Themes Section */}
-          <div>
-            <h3 className="text-sm font-medium mb-3">浅色主题</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-              {lightThemes.map((theme) => (
-                <ThemeCard
-                  key={theme.id}
-                  theme={theme}
-                  isActive={currentTheme === theme.id}
-                  onSelect={() => handleThemeChange(theme.id)}
-                />
-              ))}
+    <div className="space-y-8">
+      {/* 基本设置 */}
+      <div>
+        <Card className="shadow-sm">
+          <CardBody className="p-6">
+            <div className="space-y-6">
+              <SettingItem
+                icon={<RiToggleLine size={20} />}
+                label="最小化到托盘"
+                description="关闭窗口时最小化到系统托盘而非退出应用"
+                control={
+                  <Switch
+                    {...switchProps}
+                    isSelected={minimizeToTray}
+                    onValueChange={handleMinimizeToTrayChange}
+                    aria-label="最小化到托盘"
+                  />
+                }
+              />
+              <Divider />
+              <SettingItem
+                icon={<RiComputerLine size={20} />}
+                label="开机自启动"
+                description="系统启动时自动启动应用"
+                control={
+                  <Switch
+                    {...switchProps}
+                    isSelected={autoStart}
+                    onValueChange={handleAutoStartChange}
+                    aria-label="开机自启动"
+                  />
+                }
+              />
+              <Divider />
+              <SettingItem
+                icon={<RiSettings4Line size={20} />}
+                label="自动更新"
+                description="有新版本时自动下载并安装更新"
+                control={
+                  <Switch
+                    {...switchProps}
+                    isSelected={autoUpdate}
+                    onValueChange={handleAutoUpdateChange}
+                    aria-label="自动更新"
+                  />
+                }
+              />
             </div>
-          </div>
+          </CardBody>
+        </Card>
+      </div>
 
-          {/* Dark Themes Section */}
-          <div>
-            <h3 className="text-sm font-medium mb-3">深色主题</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-              {darkThemes.map((theme) => (
-                <ThemeCard
-                  key={theme.id}
-                  theme={theme}
-                  isActive={currentTheme === theme.id}
-                  onSelect={() => handleThemeChange(theme.id)}
-                />
-              ))}
+      {/* 主题设置 */}
+      <div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">
+                应用主题
+              </h2>
+              <p className="text-foreground/60 mt-1">
+                选择您喜欢的界面主题风格
+              </p>
             </div>
+            <Chip
+              variant="flat"
+              color="primary"
+              size="md"
+              className="font-medium"
+            >
+              {themeNames[currentTheme as ThemeName] || currentTheme}
+            </Chip>
           </div>
-        </CardBody>
-      </Card>
+        </div>
+
+        <Card className="shadow-sm">
+          <CardBody className="p-6 space-y-8">
+            {/* 浅色主题 */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-sm font-semibold">浅色主题</h3>
+                <Chip size="sm" variant="flat" color="default">
+                  {lightThemes.length} 个
+                </Chip>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {lightThemes.map((theme) => (
+                  <ThemeCard
+                    key={theme.id}
+                    theme={theme}
+                    isActive={currentTheme === theme.id}
+                    onSelect={() => handleThemeChange(theme.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* 深色主题 */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-sm font-semibold">深色主题</h3>
+                <Chip size="sm" variant="flat" color="default">
+                  {darkThemes.length} 个
+                </Chip>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {darkThemes.map((theme) => (
+                  <ThemeCard
+                    key={theme.id}
+                    theme={theme}
+                    isActive={currentTheme === theme.id}
+                    onSelect={() => handleThemeChange(theme.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
     </div>
   );
 }

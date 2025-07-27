@@ -3,6 +3,7 @@ import { info, error } from "@tauri-apps/plugin-log";
 
 let db: Database | null = null;
 let isInitialized = false;
+let initPromise: Promise<Database | null> | null = null;
 
 /**
  * 初始化数据库连接及所有相关表
@@ -10,23 +11,57 @@ let isInitialized = false;
 export async function initDatabase() {
   if (isInitialized) return db;
 
+  // 如果已经有初始化在进行中，等待它完成
+  if (initPromise) {
+    return await initPromise;
+  }
+
+  initPromise = (async () => {
+    try {
+      info("Initializing database...");
+      db = await Database.load("sqlite:taiasst.db");
+      // 所有表创建都通过Rust端的迁移系统处理
+      // 包括AI配置表、密码管理表等
+
+      // 将来如果有其他需要手动初始化的数据，可以在这里添加
+      // await initOtherData();
+
+      isInitialized = true;
+      info("Database initialized successfully.");
+      return db;
+    } catch (err) {
+      error(`数据库初始化失败: ${String(err)}`);
+      db = null;
+      isInitialized = false;
+      throw err;
+    } finally {
+      initPromise = null;
+    }
+  })();
+
+  return await initPromise;
+}
+
+/**
+ * 轻量级数据库连接检查
+ * 只检查连接是否可用，不执行复杂操作
+ */
+export async function checkDatabaseConnection(): Promise<boolean> {
   try {
-    info("Initializing database...");
-    db = await Database.load("sqlite:taiasst.db");
-    // 移除对 initAiConfigTable 的调用，因为表创建已通过迁移系统处理
-    // await initAiConfigTable();
+    if (!isInitialized || !db) {
+      // 如果数据库未初始化，尝试快速初始化
+      await initDatabase();
+    }
 
-    // 将来如果有其他需要手动初始化的表，可以在这里添加
-    // await initOtherTables();
+    // 如果数据库已经初始化，直接返回成功
+    if (db && isInitialized) {
+      return true;
+    }
 
-    isInitialized = true;
-    info("Database initialized successfully.");
-    return db;
+    return false;
   } catch (err) {
-    error(`数据库初始化失败: ${String(err)}`);
-    db = null; // 初始化失败，重置db实例
-    isInitialized = false;
-    throw err; // 重新抛出错误，以便上层可以处理
+    console.warn("数据库连接检查失败:", err);
+    return false;
   }
 }
 

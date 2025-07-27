@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate, useOutlet } from "react-router";
+import { useLocation, useOutlet } from "react-router";
 import {
-  RiHome4Line,
+  RiHome3Line, // 更现代的首页图标
   RiPuzzle2Line,
   RiRobot2Line,
-  RiSettingsLine,
-  RiToolsLine,
-} from "@remixicon/react";
+  RiSettings4Line, // 更现代的设置图标
+  RiToolsLine, // 工具图标
+  RiLockPasswordLine,
+  RiNodeTree,
+  RiCodeLine, // 更好的工作流图标
+} from "react-icons/ri";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { motion, AnimatePresence } from "framer-motion";
 import SiderBarLayout from "./SiderBarLayout";
@@ -31,7 +34,6 @@ function MainLayout() {
   const APP_VERSION = import.meta.env.VITE_APP_VERSION;
   const APP_NAME = import.meta.env.VITE_APP_NAME;
   const location = useLocation();
-  const navigate = useNavigate();
   const outlet = useOutlet();
   const appWindow = getCurrentWindow();
 
@@ -43,11 +45,22 @@ function MainLayout() {
   };
 
   const menuItems: MenuItem[] = [
-    { key: "/", icon: <RiHome4Line size={20} />, label: "首页" },
+    { key: "/", icon: <RiHome3Line size={20} />, label: "首页" },
     { key: "/tool", icon: <RiToolsLine size={20} />, label: "工具" },
-    { key: "/ai", icon: <RiRobot2Line size={20} />, label: "AI" },
+    { key: "/ai", icon: <RiRobot2Line size={20} />, label: "AI助手" },
+    {
+      key: "/workflow",
+      icon: <RiNodeTree size={20} />,
+      label: "工作流",
+    },
+    {
+      key: "/passwords",
+      icon: <RiLockPasswordLine size={20} />,
+      label: "密码",
+    },
     { key: "/plugins", icon: <RiPuzzle2Line size={20} />, label: "插件" },
-    { key: "/settings", icon: <RiSettingsLine size={20} />, label: "设置" },
+    { key: "/settings", icon: <RiSettings4Line size={20} />, label: "设置" },
+    { key: "/components", icon: <RiCodeLine size={20} />, label: "组件" },
   ];
 
   const getCurrentKey = () => {
@@ -96,7 +109,6 @@ function MainLayout() {
         currentKey={currentKey}
         APP_NAME={APP_NAME}
         APP_VERSION={APP_VERSION}
-        navigate={navigate}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -109,13 +121,16 @@ function MainLayout() {
         />
 
         <main className="p-4 md:p-6 overflow-y-auto overflow-x-hidden flex-1">
-          <AnimatePresence initial={false} mode="sync">
+          <AnimatePresence initial={false} mode="wait">
             <motion.div
               key={location.key}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{
+                duration: 0.3,
+                ease: [0.25, 0.46, 0.45, 0.94], // 使用更平滑的缓动函数
+              }}
               className="h-full"
             >
               {outlet}

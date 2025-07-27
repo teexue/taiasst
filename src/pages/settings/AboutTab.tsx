@@ -1,11 +1,24 @@
-import { Button } from "@heroui/react";
-import { Chip } from "@heroui/react";
+import { useState } from "react";
+import {
+  Button,
+  Chip,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+} from "@heroui/react";
 import { toast } from "sonner";
 import { open } from "@tauri-apps/plugin-shell";
-import { RiGithubFill } from "@remixicon/react";
-import APP_LOGO from "/logo.png";
+import {
+  RiGithubFill,
+  RiInformationLine,
+  RiRefreshLine,
+  RiExternalLinkLine,
+  RiHeartFill,
+  RiCodeLine,
+} from "react-icons/ri";
 import { check } from "@tauri-apps/plugin-updater";
-import { useState } from "react";
+import Logo from "../../components/common/Logo";
 
 interface AboutTabProps {
   onUpdate?: () => void;
@@ -42,53 +55,116 @@ function AboutTab({ onUpdate }: AboutTabProps) {
   };
 
   return (
-    <>
-      <div className="flex flex-col items-center w-full mb-6">
-        <img src={APP_LOGO} alt={APP_NAME} className="w-24 h-24 mb-2" />
-        <h3 className="text-xl font-semibold my-1">{APP_NAME}</h3>
-        <div className="flex gap-2 items-center">
-          <Chip color="primary" size="sm">
-            轻量级
-          </Chip>
-          <Chip color="success" size="sm">
-            无广告
-          </Chip>
-          <Chip color="secondary" size="sm">
-            开源
-          </Chip>
-        </div>
-      </div>
-      <div className="flex flex-col items-center w-full mx-auto">
-        <p className="text-center">{APP_DESCRIPTION}</p>
-        <p className="text-center">
-          当前版本：
-          <Chip color="secondary" variant="flat" size="sm">
-            V{APP_VERSION}
-          </Chip>
-        </p>
-        <div className="flex gap-2 items-center mt-4">
-          <Button
-            variant="shadow"
-            size="sm"
-            onPress={checkUpdate}
-            isLoading={checkUpdateLoading}
-            className="shadow-sm"
-          >
-            检查更新
-          </Button>
-          <Button
-            color="primary"
-            variant="shadow"
-            size="sm"
-            onPress={openGitHub}
-            startContent={<RiGithubFill />}
-            className="shadow-sm hover:shadow-primary/30 click-scale"
-          >
-            访问项目
-          </Button>
-        </div>
-      </div>
-    </>
+    <div className="space-y-6">
+      {/* 应用信息 */}
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <RiInformationLine className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">应用信息</h2>
+              <p className="text-sm text-foreground/60">关于此应用程序</p>
+            </div>
+          </div>
+        </CardHeader>
+        <Divider />
+        <CardBody className="pt-6">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-20 h-20 flex items-center justify-center">
+              <Logo
+                width={80}
+                height={80}
+                animated={true}
+                colorMode="primary"
+                className="drop-shadow-lg"
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                {APP_NAME}
+              </h1>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Chip color="primary" size="sm">
+                  轻量级
+                </Chip>
+                <Chip color="success" size="sm">
+                  无广告
+                </Chip>
+                <Chip color="secondary" size="sm">
+                  开源
+                </Chip>
+              </div>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Chip color="secondary" variant="flat" size="sm">
+                  版本 {APP_VERSION}
+                </Chip>
+              </div>
+              <p className="text-sm text-foreground/70 max-w-md">
+                {APP_DESCRIPTION}
+              </p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* 操作按钮 */}
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-secondary/10 rounded-lg">
+              <RiCodeLine className="w-5 h-5 text-secondary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">开发者选项</h2>
+              <p className="text-sm text-foreground/60">源代码和更新</p>
+            </div>
+          </div>
+        </CardHeader>
+        <Divider />
+        <CardBody className="pt-6">
+          <div className="flex flex-col gap-3 max-w-sm mx-auto">
+            <Button
+              color="primary"
+              variant="flat"
+              startContent={<RiGithubFill />}
+              endContent={<RiExternalLinkLine />}
+              onPress={openGitHub}
+              className="w-full"
+            >
+              查看源代码
+            </Button>
+
+            <Button
+              color="secondary"
+              variant="flat"
+              startContent={<RiRefreshLine />}
+              onPress={checkUpdate}
+              isLoading={checkUpdateLoading}
+              className="w-full"
+            >
+              检查更新
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* 版权信息 */}
+      <Card className="bg-default/5 border-default/20">
+        <CardBody className="p-4">
+          <div className="text-center">
+            <p className="text-sm text-foreground/70 flex items-center justify-center gap-1">
+              © 2024 {APP_NAME}. Made with{" "}
+              <RiHeartFill className="text-danger" />
+            </p>
+            <p className="text-xs text-foreground/50 mt-1">
+              基于 Tauri + React + TypeScript 构建
+            </p>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
   );
 }
 

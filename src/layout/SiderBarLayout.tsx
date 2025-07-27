@@ -1,7 +1,9 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Chip, Tooltip } from "@heroui/react";
-import { RiMenuFoldLine, RiMenuUnfoldLine } from "@remixicon/react";
+import { RiMenuFoldLine, RiMenuUnfoldLine } from "react-icons/ri";
+import { useNavigate } from "react-router";
+import Logo from "../components/common/Logo";
 
 interface MenuItem {
   key: string;
@@ -16,7 +18,6 @@ interface SiderBarLayoutProps {
   currentKey: string;
   APP_NAME: string;
   APP_VERSION: string;
-  navigate: (path: string) => void;
 }
 
 const sidebarVariants = {
@@ -29,21 +30,22 @@ const labelVariants = {
   hidden: { opacity: 0, x: -10, transition: { duration: 0.1 } },
 };
 
-const SiderBarLayout: React.FC<SiderBarLayoutProps> = ({
+function SiderBarLayout({
   isSidebarCollapsed,
   toggleSidebar,
   menuItems,
   currentKey,
   APP_NAME,
   APP_VERSION,
-  navigate,
-}) => {
+}: SiderBarLayoutProps) {
+  const navigate = useNavigate();
+
   return (
     <motion.aside
       initial={false}
       animate={isSidebarCollapsed ? "collapsed" : "expanded"}
       variants={sidebarVariants}
-      className="h-full flex flex-col flex-shrink-0 border-r border-divider/30 glass-light dark:glass-dark"
+      className="h-full flex flex-col flex-shrink-0 border-r border-divider/30"
     >
       <div
         className={`flex items-center h-[40px] px-4 ${
@@ -56,7 +58,13 @@ const SiderBarLayout: React.FC<SiderBarLayoutProps> = ({
           exit={{ opacity: 0 }}
           className="flex items-center gap-2"
         >
-          <img src="/logo.png" alt="logo" width={28} height={28} />
+          <Logo
+            width={28}
+            height={28}
+            className="flex-shrink-0"
+            animated={true}
+            colorMode="primary"
+          />
           {!isSidebarCollapsed && (
             <span className="text-lg font-semibold">{APP_NAME}</span>
           )}
@@ -145,6 +153,6 @@ const SiderBarLayout: React.FC<SiderBarLayoutProps> = ({
       </div>
     </motion.aside>
   );
-};
+}
 
 export default SiderBarLayout;

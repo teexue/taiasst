@@ -1,153 +1,119 @@
 // src/themes/pink.ts
-// 粉色主题 - 樱花粉色调
+// 粉色主题 - 2024年珊瑚粉色调 (温暖现代风格)
 import { ThemeConfig } from "./base";
+import { baseTheme } from "./base";
 
 export const pinkTheme: ThemeConfig = {
-  extend: "light", // 继承浅色主题的基本设置
+  extend: "light",
+  layout: baseTheme.light.layout,
   colors: {
-    background: {
-      DEFAULT: "#fff5f8", // 更柔和的淡粉背景
-      foreground: "#33242e",
-    },
-    foreground: {
-      DEFAULT: "#11181C", // Updated for contrast
-      50: "#fcf7fa",
-      100: "#e5e7ea",
-      200: "#c5c9ce",
-      300: "#a5abb2",
-      400: "#7d8695",
-      500: "#5c6370",
-      600: "#4a4a4a",
-      700: "#33242e",
-      800: "#2a1d25",
-      900: "#21161c",
+    default: {
+      "50": "#fdf2f8",
+      "100": "#fce7f3",
+      "200": "#fbcfe8",
+      "300": "#f9a8d4",
+      "400": "#f472b6",
+      "500": "#ec4899",
+      "600": "#db2777",
+      "700": "#be185d",
+      "800": "#9d174d",
+      "900": "#831843",
+      foreground: "#831843",
+      DEFAULT: "#ec4899",
     },
     primary: {
-      DEFAULT: "#f5b1c1", // 更柔和的樱花粉主色调
+      "50": "#fdf2f8",
+      "100": "#fce7f3",
+      "200": "#fbcfe8",
+      "300": "#f9a8d4",
+      "400": "#f472b6",
+      "500": "#ec4899", // 现代珊瑚粉 - 2024年温暖色调
+      "600": "#db2777",
+      "700": "#be185d",
+      "800": "#9d174d",
+      "900": "#831843",
       foreground: "#ffffff",
-      50: "#fef5f7",
-      100: "#fdeaef",
-      200: "#fad5df",
-      300: "#f8c0cf",
-      400: "#f5b1c1", // 主色
-      500: "#eda2b4", // 之前的位置
-      600: "#d689a0",
-      700: "#b06a7d",
-      800: "#8b505f",
-      900: "#66323f",
+      DEFAULT: "#ec4899",
     },
     secondary: {
-      DEFAULT: "#f8cad7", // 更柔和的辅助粉色
-      foreground: "#4f2935",
-      50: "#fef8fa",
-      100: "#fdf1f5",
-      200: "#fbe3eb",
-      300: "#f9d6e1",
-      400: "#f8cad7", // 辅助色
-      500: "#f0bfcd",
-      600: "#d6a7b9",
-      700: "#b08594",
-      800: "#8a6370",
-      900: "#4f2935",
+      "50": "#fef7f2",
+      "100": "#fef0e6",
+      "200": "#feddd9",
+      "300": "#fdc4bd",
+      "400": "#fb9d8c",
+      "500": "#f87171", // 温和桃色
+      "600": "#f56565",
+      "700": "#e53e3e",
+      "800": "#c53030",
+      "900": "#9c2020",
+      foreground: "#ffffff",
+      DEFAULT: "#f87171",
     },
     success: {
-      DEFAULT: "#16a34a",
+      "50": "#f0fdf4",
+      "100": "#dcfce7",
+      "200": "#bbf7d0",
+      "300": "#86efac",
+      "400": "#4ade80",
+      "500": "#22c55e", // 薄荷绿平衡
+      "600": "#16a34a",
+      "700": "#15803d",
+      "800": "#166534",
+      "900": "#14532d",
       foreground: "#ffffff",
-      50: "#e7f7ec",
-      100: "#d0f0d9",
-      200: "#a1e1b3",
-      300: "#72d18d",
-      400: "#43c267",
-      500: "#16a34a",
-      600: "#13843c",
-      700: "#0e632d",
-      800: "#09421e",
-      900: "#04210f",
+      DEFAULT: "#22c55e",
     },
     warning: {
-      DEFAULT: "#f59e0b", // 改为标准橙色警告色
+      "50": "#fffbeb",
+      "100": "#fef3c7",
+      "200": "#fde68a",
+      "300": "#fcd34d",
+      "400": "#fbbf24",
+      "500": "#f59e0b", // 金色琥珀
+      "600": "#d97706",
+      "700": "#b45309",
+      "800": "#92400e",
+      "900": "#78350f",
       foreground: "#ffffff",
-      50: "#fdf9e6",
-      100: "#fdf3cc",
-      200: "#fbe799",
-      300: "#f9db66",
-      400: "#f7cf33",
-      500: "#f59e0b",
-      600: "#c47e09",
-      700: "#935f06",
-      800: "#623f04",
-      900: "#312002",
+      DEFAULT: "#f59e0b",
     },
     danger: {
-      DEFAULT: "#e11d48",
+      "50": "#fef2f2",
+      "100": "#fee2e2",
+      "200": "#fecaca",
+      "300": "#fca5a5",
+      "400": "#f87171",
+      "500": "#ef4444", // 温和红色
+      "600": "#dc2626",
+      "700": "#b91c1c",
+      "800": "#991b1b",
+      "900": "#7f1d1d",
       foreground: "#ffffff",
-      50: "#fbe9ed",
-      100: "#f7d3db",
-      200: "#efa7b7",
-      300: "#e77b93",
-      400: "#df4f6f",
-      500: "#e11d48",
-      600: "#b4173a",
-      700: "#87122c",
-      800: "#5a0c1d",
-      900: "#2d060f",
+      DEFAULT: "#ef4444",
     },
-    divider: {
-      DEFAULT: "#f7e6ef",
-      foreground: "#33242e",
-      50: "#fff7fc",
-      100: "#fff0f9",
-      200: "#f7e6ef",
-      300: "#efd8e5",
-      400: "#e7cadb",
-      500: "#dfbcd1",
-      600: "#d79cba",
-      700: "#af7c96",
-      800: "#875c71",
-      900: "#5f3c4d",
-    },
+    background: "#fef9f8", // 极浅粉色背景
+    foreground: "#4a1a23", // 深玫瑰褐色文字
     content1: {
       DEFAULT: "#ffffff",
-      foreground: "#33242e",
+      foreground: "#4a1a23",
     },
     content2: {
-      DEFAULT: "#fcf7fa",
-      foreground: "#33242e",
+      DEFAULT: "#fdf2f8", // 极浅粉雾
+      foreground: "#5d2034",
     },
     content3: {
-      DEFAULT: "#fff5f8", // 调整为与背景一致
-      foreground: "#33242e",
+      DEFAULT: "#fce7f3", // 浅粉雾
+      foreground: "#702645",
     },
     content4: {
-      DEFAULT: "#fef5f7", // 调整为与主色调的50值一致
-      foreground: "#33242e",
+      DEFAULT: "#fbcfe8", // 粉色雾霭
+      foreground: "#832c56",
     },
-    default: {
-      DEFAULT: "#fcf7fa",
-      foreground: "#33242e",
-      50: "#ffffff",
-      100: "#fdfbfc",
-      200: "#fcf7fa",
-      300: "#f8eff5",
-      400: "#f4e7f0",
-      500: "#4a4a4a", // 保持不变，这是文字颜色
-      600: "#e0cfdb",
-      700: "#d0bfcb",
-      800: "#c0afbb",
-      900: "#b09fab",
-    },
-    focus: {
-      DEFAULT: "#f5b1c1", // 对应调整后的主色
-      50: "#fef5f7",
-      100: "#fdeaef",
-      200: "#fad5df",
-      300: "#f8c0cf",
-      400: "#f5b1c1",
-      500: "#eda2b4",
-      600: "#d689a0",
-      700: "#b06a7d",
-      800: "#8b505f",
-      900: "#66323f",
+    focus: "#ec4899", // 与primary保持一致
+    overlay: "#000000",
+    divider: {
+      DEFAULT: "#fce7f3", // 粉色分割线
+      foreground: "#9d174d",
     },
   },
 };

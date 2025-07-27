@@ -52,12 +52,42 @@ export async function getPluginScriptUrl(pluginId: string): Promise<string> {
 }
 
 /**
- * 注入全局依赖到window对象，使插件可以访问React和Ant Design
+ * 注入全局依赖到window对象，使插件可以访问React和HeroUI
  */
 export async function injectGlobalDependencies(): Promise<void> {
   try {
     const React = await import("react");
     (window as any).React = React.default || React;
+
+    // 导入HeroUI及其所有组件
+    const HeroUI = await import("@heroui/react");
+
+    // 确保HeroUI组件被正确地暴露，包括Card组件
+    (window as any).HeroUI = HeroUI;
+
+    // 为UMD插件单独暴露常用组件
+    const {
+      Card,
+      Button,
+      Spinner,
+      Modal,
+      Form,
+      Input,
+      Select,
+      Table,
+      Tabs,
+      Alert,
+    } = HeroUI;
+    (window as any).Card = Card;
+    (window as any).Button = Button;
+    (window as any).Spinner = Spinner;
+    (window as any).Modal = Modal;
+    (window as any).Form = Form;
+    (window as any).Input = Input;
+    (window as any).Select = Select;
+    (window as any).Table = Table;
+    (window as any).Tabs = Tabs;
+    (window as any).Alert = Alert;
   } catch (err) {
     error(`注入全局依赖失败: ${String(err)}`);
     // 这里可能需要抛出错误，因为插件可能依赖这些库

@@ -2,19 +2,21 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Chip,
   Button,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  Avatar,
   Spinner,
   Card,
   CardHeader,
   CardBody,
   CardFooter,
   Tooltip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
 } from "@heroui/react";
 import { toast } from "sonner";
-import { RiEyeLine, RiDeleteBin6Line, RiInboxLine } from "@remixicon/react";
+import { RiEyeLine, RiDeleteBin5Line, RiInboxLine } from "react-icons/ri";
 import { error } from "@tauri-apps/plugin-log";
 import {
   getPluginList,
@@ -22,13 +24,7 @@ import {
   clearPluginGlobal,
   removePluginScript,
 } from "@/utils/plugin";
-import {
-  PluginMetadata,
-  PluginType,
-  PluginTypeExtra,
-  Origin,
-  OriginExtra,
-} from "@/types/plugin";
+import { PluginMetadata, PluginType, PluginTypeExtra } from "@/types/plugin";
 import { motion } from "framer-motion";
 
 interface PluginListTabProps {
@@ -39,6 +35,14 @@ interface PluginListTabProps {
 function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
   const [plugins, setPlugins] = useState<PluginMetadata[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pluginToUninstall, setPluginToUninstall] =
+    useState<PluginMetadata | null>(null);
+
+  const {
+    isOpen: isUninstallModalOpen,
+    onOpen: onUninstallModalOpen,
+    onClose: onUninstallModalClose,
+  } = useDisclosure();
 
   const fetchPlugins = useCallback(async () => {
     setLoading(true);
@@ -57,16 +61,30 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
     fetchPlugins();
   }, [fetchPlugins]);
 
-  const handleUninstall = async (plugin: PluginMetadata) => {
+  const handleUninstall = (plugin: PluginMetadata) => {
+    setPluginToUninstall(plugin);
+    onUninstallModalOpen();
+  };
+
+  const confirmUninstall = async () => {
+    if (!pluginToUninstall) return;
+
     try {
-      await uninstallPlugin(plugin.id);
-      toast.success(`插件 ${plugin.name} 已卸载`);
+      await uninstallPlugin(pluginToUninstall.id);
+      toast.success(`插件 ${pluginToUninstall.name} 已卸载`);
       fetchPlugins();
       onUpdate();
+      onUninstallModalClose();
+      setPluginToUninstall(null);
     } catch (err) {
       error(`卸载插件失败: ${String(err)}`);
       toast.error("卸载插件失败");
     }
+  };
+
+  const cancelUninstall = () => {
+    setPluginToUninstall(null);
+    onUninstallModalClose();
   };
 
   const handlePreview = (plugin: PluginMetadata) => {
@@ -85,9 +103,14 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
 
   if (!loading && plugins.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 text-foreground-500 h-64">
-        <RiInboxLine className="w-16 h-16 mb-4 text-foreground-300" />
-        <span>暂无已安装的插件</span>
+      <div className="flex flex-col items-center justify-center py-20 text-foreground/60">
+        <div className="w-20 h-20 rounded-full bg-default-100 flex items-center justify-center mb-4">
+          <RiInboxLine className="w-10 h-10 text-default-400" />
+        </div>
+        <h3 className="text-lg font-medium text-foreground mb-2">暂无插件</h3>
+        <p className="text-sm text-foreground/60">
+          点击上方"安装插件"按钮开始添加插件
+        </p>
       </div>
     );
   }
@@ -114,160 +137,205 @@ function PluginListTab({ onPreview, onUpdate }: PluginListTabProps) {
 
   // Animation variants for the grid items (similar to ToolIndex)
   const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, scale: 0.95 },
     visible: (i: number) => ({
       opacity: 1,
-      y: 0,
+      scale: 1,
       transition: {
-        delay: i * 0.05,
-        duration: 0.3,
-        ease: "easeOut",
+        delay: i * 0.03,
+        duration: 0.25,
+        ease: [0.25, 0.46, 0.45, 0.94],
       },
     }),
   };
 
   return (
-    <motion.div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-1">
-      {plugins.map((plugin, index) => (
-        <motion.div
-          key={plugin.id}
-          custom={index}
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-          whileHover={{ y: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Card className="glass-light dark:glass-dark overflow-hidden h-full shadow-sm border border-divider/10">
-            <CardHeader className="p-3 flex items-start gap-3">
-              <Avatar
-                name={plugin.name.charAt(0).toUpperCase()}
-                size="md"
-                radius="md"
-                className="flex-shrink-0 bg-gradient-to-br from-secondary to-primary text-white"
-              />
-              <div className="flex-1 min-w-0">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">已安装插件</h2>
+        <span className="text-sm text-foreground/60">
+          {plugins.length} 个插件
+        </span>
+      </div>
+
+      <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {plugins.map((plugin, index) => (
+          <motion.div
+            key={plugin.id}
+            custom={index}
+            initial="hidden"
+            animate="visible"
+            variants={cardVariants}
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Card className="h-full shadow-sm border border-divider/20 hover:border-primary/30 transition-all duration-200">
+              <CardHeader className="p-4 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-semibold text-lg shadow-sm">
+                    {plugin.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Tooltip
+                      content={plugin.name}
+                      placement="top-start"
+                      delay={300}
+                    >
+                      <h3 className="font-semibold text-foreground line-clamp-1 mb-1">
+                        {plugin.name}
+                      </h3>
+                    </Tooltip>
+                    <div className="flex items-center flex-wrap gap-2">
+                      <Chip
+                        variant="flat"
+                        size="sm"
+                        color="primary"
+                        className="text-xs"
+                      >
+                        v{plugin.version}
+                      </Chip>
+                      {plugin.plugin_type && (
+                        <Chip
+                          variant="flat"
+                          size="sm"
+                          color={mapAntdColorToHeroUIColor(
+                            PluginTypeExtra[plugin.plugin_type as PluginType]
+                              ?.color,
+                          )}
+                          className="text-xs"
+                        >
+                          {PluginTypeExtra[plugin.plugin_type as PluginType]
+                            ?.name || plugin.plugin_type}
+                        </Chip>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardBody className="px-4 py-3">
                 <Tooltip
-                  content={plugin.name}
-                  placement="top-start"
+                  content={plugin.description || "暂无描述"}
+                  placement="bottom-start"
                   delay={300}
                 >
-                  <h5 className="text-sm font-medium m-0 line-clamp-1">
-                    {plugin.name}
-                  </h5>
+                  <p className="text-sm text-foreground/70 line-clamp-3 min-h-[3.5rem]">
+                    {plugin.description || "暂无描述"}
+                  </p>
                 </Tooltip>
-                <div className="flex items-center flex-wrap gap-1 mt-1 text-xs">
-                  {plugin.plugin_type && (
-                    <Chip
-                      variant="flat"
-                      size="sm"
-                      radius="sm"
-                      color={mapAntdColorToHeroUIColor(
-                        PluginTypeExtra[plugin.plugin_type as PluginType]
-                          ?.color,
-                      )}
-                      className="bg-opacity-10 border-opacity-30"
-                    >
-                      {PluginTypeExtra[plugin.plugin_type as PluginType]
-                        ?.name || plugin.plugin_type}
-                    </Chip>
-                  )}
-                  <Chip
-                    variant="bordered"
+
+                {plugin.author && (
+                  <p className="text-xs text-foreground/50 mt-3">
+                    作者: {plugin.author}
+                  </p>
+                )}
+              </CardBody>
+
+              <CardFooter className="px-4 py-3 pt-0 flex justify-between items-center">
+                <div className="flex gap-2">
+                  <Button
                     size="sm"
-                    radius="sm"
-                    className="border-default-300/70 text-foreground/70"
+                    variant="flat"
+                    color="primary"
+                    startContent={<RiEyeLine size={16} />}
+                    onPress={() => handlePreview(plugin)}
+                    className="text-xs"
                   >
-                    v{plugin.version}
-                  </Chip>
-                  {plugin.origin && (
-                    <Chip
-                      variant="bordered"
-                      size="sm"
-                      radius="sm"
-                      color={mapAntdColorToHeroUIColor(
-                        OriginExtra[plugin.origin as Origin]?.color,
-                      )}
-                      className="border-opacity-70"
-                    >
-                      {OriginExtra[plugin.origin as Origin]?.name ||
-                        plugin.origin}
-                    </Chip>
-                  )}
+                    预览
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    color="danger"
+                    startContent={<RiDeleteBin5Line size={16} />}
+                    className="text-xs"
+                    onPress={() => handleUninstall(plugin)}
+                  >
+                    卸载
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* 卸载确认模态框 */}
+      <Modal
+        isOpen={isUninstallModalOpen}
+        onClose={cancelUninstall}
+        size="md"
+        backdrop="blur"
+      >
+        <ModalContent>
+          <ModalHeader className="flex items-center gap-3">
+            <div className="p-2 bg-danger/10 rounded-lg">
+              <RiDeleteBin5Line className="w-5 h-5 text-danger" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-danger">确认卸载</h2>
+            </div>
+          </ModalHeader>
+
+          <ModalBody className="py-4">
+            <div className="space-y-4">
+              <p className="text-foreground">
+                您确定要卸载插件{" "}
+                <span className="font-semibold">
+                  "{pluginToUninstall?.name}"
+                </span>{" "}
+                吗？
+              </p>
+
+              <div className="p-4 bg-danger/5 border border-danger/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-danger/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-danger text-sm font-bold">!</span>
+                  </div>
+                  <div className="text-sm text-danger-600">
+                    <p className="font-medium mb-1">此操作无法撤销</p>
+                    <p>卸载后，插件的所有数据和配置将被永久删除。</p>
+                  </div>
                 </div>
               </div>
-            </CardHeader>
-            <CardBody className="pt-0 pb-3 px-3 text-xs text-foreground/70">
-              <Tooltip
-                content={plugin.description || "暂无描述"}
-                placement="bottom-start"
-                delay={300}
-              >
-                <p className="min-h-[2.5em] line-clamp-2">
-                  {plugin.description || "暂无描述"}
-                </p>
-              </Tooltip>
-            </CardBody>
-            <CardFooter className="pt-1 pb-2 px-3 flex justify-between items-center border-t border-divider/10">
-              <span className="text-tiny text-foreground/50 truncate">
-                {plugin.author ? `作者: ${plugin.author}` : ""}
-              </span>
-              <div className="flex gap-1">
-                <Tooltip content="预览" placement="top" delay={0}>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    radius="full"
-                    className="text-primary hover:bg-primary/10"
-                    onPress={() => handlePreview(plugin)}
-                  >
-                    <RiEyeLine size={16} />
-                  </Button>
-                </Tooltip>
-                <Popover placement="top-end">
-                  <PopoverTrigger>
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="light"
-                      radius="full"
-                      className="text-danger hover:bg-danger/10"
-                    >
-                      <RiDeleteBin6Line size={16} />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 rounded-lg overflow-hidden">
-                    <div className="px-3 py-2 bg-danger/10">
-                      <h4 className="text-sm font-medium text-danger-600">
-                        确认卸载
-                      </h4>
-                    </div>
-                    <div className="p-3 text-sm">
-                      确定要卸载插件 "
-                      <span className="font-medium">{plugin.name}</span>" 吗？
-                    </div>
-                    <div className="flex justify-end gap-2 p-2 bg-default-100/50">
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        color="danger"
-                        onPress={() => handleUninstall(plugin)}
-                      >
-                        确定卸载
-                      </Button>
-                      <Button size="sm" variant="bordered" onPress={close}>
-                        取消
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </CardFooter>
-          </Card>
-        </motion.div>
-      ))}
-    </motion.div>
+
+              {pluginToUninstall && (
+                <div className="text-sm text-foreground/60 space-y-1">
+                  <p>
+                    <span className="font-medium">版本:</span> v
+                    {pluginToUninstall.version}
+                  </p>
+                  {pluginToUninstall.author && (
+                    <p>
+                      <span className="font-medium">作者:</span>{" "}
+                      {pluginToUninstall.author}
+                    </p>
+                  )}
+                  {pluginToUninstall.description && (
+                    <p>
+                      <span className="font-medium">描述:</span>{" "}
+                      {pluginToUninstall.description}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </ModalBody>
+
+          <ModalFooter className="gap-3">
+            <Button variant="flat" onPress={cancelUninstall}>
+              取消
+            </Button>
+            <Button
+              color="danger"
+              onPress={confirmUninstall}
+              startContent={<RiDeleteBin5Line />}
+            >
+              确认卸载
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
   );
 }
 
